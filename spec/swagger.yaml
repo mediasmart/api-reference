@@ -7,51 +7,47 @@ swagger: '2.0'
 schemes:
   - http # Remove if your API doesn't support HTTP
   - https # Remove if your API donsn't support HTTPS
-host: example.com # Replace with your hostname. You can also specify port e.g. example.com:777
-basePath: /api/v1 # Replace with your basePath. Note: SHOULD begin with '/'.
+host: api.mediasmart.io # Replace with your hostname. You can also specify port e.g. example.com:777
+basePath: / # Replace with your basePath. Note: SHOULD begin with '/'.
 info:
   # Describe your API here, you can use GFM (https://guides.github.com/features/mastering-markdown) here
   description: |
-    This is an **example** API to demontstrate features of OpenAPI specification
-    # Introduction
-    This specification is intended to to be a good starting point for describint your API in 
-    [OpenAPI/Swagger format](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md).
-    It also demonstrates features of [generator-openapi-repo](https://github.com/Rebilly/generator-openapi-repo) tool and 
-    [ReDoc](https://github.com/Rebilly/ReDoc) documentation engine. So beyond the standard OpenAPI syntax we use a few 
-    [vendor extensions](https://github.com/Rebilly/ReDoc/blob/master/docs/redoc-vendor-extensions.md).
-    
-    # OpenAPI Specification
-    The goal of The OpenAPI Specification is to define a standard, language-agnostic interface to REST APIs which
-    allows both humans and computers to discover and understand the capabilities of the service without access to source
-    code, documentation, or through network traffic inspection. When properly defined via OpenAPI, a consumer can 
-    understand and interact with the remote service with a minimal amount of implementation logic. Similar to what
-    interfaces have done for lower-level programming, OpenAPI removes the guesswork in calling the service.
+    This is the **API reference** for [mediasmart.io](https://mediasmart.io), directly used by
+    [our web application client](https://console.mediasmart.io) but also open to the world. So using our API
+    you'll be able to do most things you can do by mean of the web interface.
 
-  version: '1.0.0' # Your API version
+    # Introduction
+    This reference describes how to use Mediasmart API. It is private, so first of all you'll need to
+    [register an account](http://mediasmart.io/pricing/?utm_source=mediasmart&utm_campaign=api-reference) in case
+    you don't have one yet.
+
+    Contact us for any doubt or suggestion: [support@mediasmart.io](mailto://support@mediasmart.io)
+
+  version: '1.4.0' # Your API version
   # It can be any string but it is better to use semantic versioning: http://semver.org/
   # Warning: OpenAPI require version to be string, but without quotation YAML can recognize it as number.
 
-  title: Example.com # Replace with your API title
+  title: Mediasmart API # Replace with your API title
   # Keep it simple. Don't add "API" or verison at the end of the string.
 
-  termsOfService: 'https://example.com/terms/' # [Optional] Replace with an URL to your ToS
+  termsOfService: 'http://mediasmart.io/terms-of-use/' # [Optional] Replace with an URL to your ToS
   contact:
-    email: contact@example.com # [Optional] Replace with your contact email
-    url: 'http://example.com/contact' # [Optional] Replace with link to your contact form
+    email: support@mediasmart.io # [Optional] Replace with your contact email
+    url: 'http://mediasmart.io/contact/' # [Optional] Replace with link to your contact form
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   x-logo:
-    url: 'https://apis.guru/openapi-template/logo.png'
+    url: 'http://mediasmart.io/assets/images/logo-banner.jpg'
 externalDocs:
-  description: Find out how to create Github repo for your OpenAPI spec.
-  url: 'https://github.com/Rebilly/generator-openapi-repo'
+  description: Be smart about your media buying on mobile
+  url: 'http://mediasmart.io/'
 produces:
   # List of mime types your API endpoins can return.
   # This is a global default. You can OVERWRITE it in each specific operation.
   # Remove the ones not used in your API
   - application/json
-  - application/xml
+  - text/plain
   - text/csv
   # you can add any mime type your API produces to the list
 consumes:
@@ -59,40 +55,70 @@ consumes:
   # This is a global default. You can OVERWRITE it in each specific operation.
   # Remove the ones not supported by your API
   - application/json
-  - application/xml
+  - multipart/form-data
   # you can add any mime type your API consumes to the list
 
 # A list of tags used by the specification with additional metadata.
 # The order of the tags can be used to reflect on their order by the parsing tools.
 tags:
   - name: Echo
-    description: Example echo operations
+    description: Example echo operations 2
   - name: User
     description: Operations about user
+  - name: Public
+    description: Public operations. Authentication is not required.
 # Security scheme definitions that can be used across the specification.
 securityDefinitions:
-  main_auth: # security definition name (you can name it as you want)
-    type: oauth2 # authorization type, one of: oauth2, basic, apiKey
-    # the following options are specific to oauth2 type
-    authorizationUrl: 'http://example.com/api/oauth/dialog'
-    flow: implicit
-    scopes:
-      'read:users': read users info
-      'write:users': modify or remove users
-  api_key: # security definition name (you can name it as you want)
-    type: apiKey
-    # The following options are specific to apiKey type
-    in: header # Where API key will be passed: header or query
-    name: api_key # API key paramteer name
-  basic_auth: # security definition name (you can name it as you want)
-    type: basic
+  auth_token: # security definition name (you can name it as you want)
+    description: Most of our API endpoints are private. Authentication is performed by mean of a token included in your
+      `authorization` header. That token has to be generated by mean of a `[POST] /login` call.
+    type: apiKey # authorization type, one of: oauth2, basic, apiKey
+    in: header
+    name: authorization
 
 # Holds the relative paths to the individual endpoints. The path is appended to the
-# basePath in order to construct the full URL. 
+# basePath in order to construct the full URL.
 paths:
+  '/status':
+    get:
+      tags:
+        - Public
+      summary: Check API servers status
+      description: This endpoint is usefull to check servers status. If a success response is returned it means our API is up and working well.
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success. All servers are working well
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/Status'
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+  '/login':
+    post:
+      tags:
+        - Public
+      summary: Login to get a token
+      description: Performs a login to retrieve a session including an authentication token. That token can be used as `authorization` header for later requests.
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/Session'
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+
   '/users/{username}': # path parameter in curly braces
     # documentation for GET operation for this path
-    
+
     # parameters list that are used with each operation for this path
     parameters:
       - name: pretty_print
@@ -103,18 +129,18 @@ paths:
     get:
       tags:
         - User
-      
+
       # summary is up to 120 symbold but we recommend to be shortest as possible
       summary: Get user by user name
-      
+
       # you can use GFM in operation description too: https://guides.github.com/features/mastering-markdown
-      description: | 
-        Some description of the operation. 
+      description: |
+        Some description of the operation.
         You can use `markdown` here.
-      
+
       # operationId should be unique across the whole specification
       operationId: getUserByName
-      
+
       # list of parameters for the operation
       parameters:
         - name: username
@@ -126,12 +152,10 @@ paths:
           in: query
           description: Filter users without email
           type: boolean
-      
+
       # security schemas applied to this operation
       security:
-        - main_auth:
-          - 'read:users' # for auth2 provide list of scopes here
-        - api_key: []
+        - auth_token: []
       # overwriting default global produces
       produces:
         - application/json
@@ -172,8 +196,7 @@ paths:
           schema:
             $ref: '#/definitions/User'
       security:
-        - main_auth:
-          - 'write:users'
+        - auth_token: []
       responses:
         '200':
           description: OK
@@ -181,7 +204,7 @@ paths:
           description: Invalid user supplied
         '404':
           description: User not found
-  
+
   '/echo':
     post:
       tags:
@@ -198,7 +221,7 @@ paths:
             type: string
             example: 'Hello world!'
       security:
-        - api_key: []
+        - auth_token: []
       responses:
         '200':
           description: 'OK'
@@ -244,3 +267,74 @@ definitions:
         example: Smith
       email:
         $ref: '#/definitions/Email'
+  Identifier:
+    description: Unique identifier
+    type: string
+    len
+    example: eeeefwu98fkt6abxuytfl5ao43sjx767
+  Image:
+    description: Image URL
+    type: string
+    format: url
+    example: http://d2wt9ed5gia51z.cloudfront.net/xxxxxxxxxxxxxxxx
+  Name:
+    description: A name for humans
+    type: string
+    example: This Is Just a Name
+  State:
+    description: State in the platform
+    type: string
+    example: active
+  Organization:
+    type: object
+    properties:
+      id:
+        $ref: '#/definitions/Identifier'
+      name:
+        $ref: '#/definitions/Name'
+      image:
+        $ref: '#/definitions/Image'
+      state:
+        $ref: '#/definitions/State'
+  Session:
+    type: object
+    properties:
+      id:
+        $ref: '#/definitions/Identifier'
+      token:
+        description: Authorization token
+        type: string
+        minLength: 32
+        maxLength: 32
+        example: padyfwu23fkt6abxf3lfl5ao43sjxden
+      username:
+        description: User username
+        type: string
+        minLength: 1
+        example: anexampleuser
+      name:
+        $ref: '#/definitions/Name'
+      email:
+        $ref: '#/definitions/Email'
+      image:
+        $ref: '#/definitions/Image'
+      role:
+        description: User role
+        type: string
+        minLength: 1
+        example: 'editor'
+      organization:
+        $ref: '#/definitions/Organization'
+  Status:
+    type: object
+    properties:
+      version:
+        description: API gateway version
+        type: string
+        minLength: 5
+        example: 1.3.17
+      status:
+        description: Global status
+        type: string
+        minLength: 1
+        example: All servers are OK
