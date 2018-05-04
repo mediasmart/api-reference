@@ -61,11 +61,11 @@ consumes:
 # A list of tags used by the specification with additional metadata.
 # The order of the tags can be used to reflect on their order by the parsing tools.
 tags:
-  - name: Echo
-    description: Example echo operations 2
+  - name: analytics
+    description: Performance and spending reports
   - name: User
     description: Operations about user
-  - name: Public
+  - name: public
     description: Public operations. Authentication is not required.
 # Security scheme definitions that can be used across the specification.
 securityDefinitions:
@@ -82,7 +82,7 @@ paths:
   '/status':
     get:
       tags:
-        - Public
+        - public
       summary: Check API servers status
       description: This endpoint is usefull to check servers status. If a success response is returned it means our API is up and working well.
       produces:
@@ -100,9 +100,29 @@ paths:
   '/login':
     post:
       tags:
-        - Public
+        - public
       summary: Login to get a token
-      description: Performs a login to retrieve a session including an authentication token. That token can be used as `authorization` header for later requests.
+      description: Performs a login to retrieve a session including an authorization token. That token can be used as `authorization` header for later requests.
+      consumes:
+        - application/json
+      parameters:
+        - name: credentials
+          in: body
+          description: User credentials
+          required: true
+          schema:
+            type: object
+            properties:
+              username:
+                description: Username or email
+                type: string
+                minLength: 1
+                example: thisismyusername
+              password:
+                description: Password
+                type: string
+                minLength: 1
+                example: thisismypassword
       produces:
         - application/json
       responses:
@@ -110,193 +130,301 @@ paths:
           description: Success
           schema: # response schema can be specified for each response
             $ref: '#/definitions/Session'
+        '400':
+          description: Wrong request
+          examples:
+            application/json:
+              message: Wrong request
+        '401':
+          description: Not authorized
+          examples:
+            application/json:
+              message: Wrong credentials
         '429':
           description: Quota exceeded
           examples:
             application/json:
               message: You've exceeded your requests per minute quota
 
-  '/users/{username}': # path parameter in curly braces
-    # documentation for GET operation for this path
-
-    # parameters list that are used with each operation for this path
-    parameters:
-      - name: pretty_print
-        in: query # place where paramter is passed: path, header, query or body, formData
-        description: Pretty print response
-        # type of the paramter: string, number, integer, boolean, array
-        type: boolean
+  '/api/dictionary':
     get:
-      tags:
-        - User
-
-      # summary is up to 120 symbold but we recommend to be shortest as possible
-      summary: Get user by user name
-
-      # you can use GFM in operation description too: https://guides.github.com/features/mastering-markdown
-      description: |
-        Some description of the operation.
-        You can use `markdown` here.
-
-      # operationId should be unique across the whole specification
-      operationId: getUserByName
-
-      # list of parameters for the operation
+      summary: Dictionary
+      description: Retrieves the main dictionary, including all values for everything in our platform. From available
+        campaign states to existing user roles.
       parameters:
-        - name: username
-          in: path
-          description: 'The name that needs to be fetched'
+        - name: authorization
+          in: header
+          description: Authorization token
           required: true
           type: string
-        - name: with_email
-          in: query
-          description: Filter users without email
-          type: boolean
-
-      # security schemas applied to this operation
-      security:
-        - auth_token: []
-      # overwriting default global produces
       produces:
         - application/json
-      responses: # list of responses
+      responses:
         '200':
           description: Success
           schema: # response schema can be specified for each response
-            $ref: '#/definitions/User'
+            $ref: '#/definitions/Dictionary'
+        '400':
+          description: Wrong request
           examples:
-          # repsonse samples for each type operation produces
             application/json:
-              username: user1
-              email: user@example.com
+              message: Wrong request
+        '401':
+          description: Not authorized
+          examples:
+            application/json:
+              message: Authentication required. Token not provided.
         '403':
-          description: Forbidden
-        '404':
-          description: User not found
-    # documentation for PUT operation for this path
-    put:
+          description: Forbidden action
+          examples:
+            application/json:
+              message: Authentication required. Invalid or expired token provided.
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+
+  '/api/analytics/custom-report':
+    get:
       tags:
-        - User
-      summary: Updated user
-      description: This can only be done by the logged in user.
-      operationId: updateUser
-      produces:
-        - application/json
+        - analytics
+      summary: Custom report
+      description: Computes a customized report, specifying drilldown variables, kpis and dates range.
       parameters:
-        - name: username
-          in: path
-          description: The name that needs to be updated
+        - name: authorization
+          in: header
+          description: Authorization token
           required: true
           type: string
-        - in: body
-          name: body
-          description: Updated user object
-          required: true
-          # for body parameter you should specify request schema instead of type
-          schema:
-            $ref: '#/definitions/User'
-      security:
-        - auth_token: []
+        - name: from
+          in: query
+          description: Start date
+          type: string
+          format: YYYY-MM-DD
+        - name: to
+          in: query
+          description: End date
+          type: string
+          format: YYYY-MM-DD
+        - name: drilldown
+          in: query
+          type: string
+          format: one,other,another
+          description: Drilldown variables (comma separated)
+        - name: kpis
+          in: query
+          type: string
+          format: one,other,another
+          description: KPIs (comma separated)
+        - name: format
+          in: query
+          type: string
+          format: json|csv|excel
+          description: Output file format
+        - name: raw
+          in: query
+          type: boolean
+          format: true|false
+          description: Active to avoid numbers rounding
+        - name: rules
+          in: query
+          type: string
+          format: variable1=[value1,value2];variable2!=[value3]
+          description: Rules separated by semicolon.
+      produces:
+        - application/json
+        - text/csv
       responses:
         '200':
-          description: OK
+          description: Success
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/Report'
         '400':
-          description: Invalid user supplied
-        '404':
-          description: User not found
-
-  '/echo':
-    post:
-      tags:
-        - Echo
-      summary: Echo test
-      description: Receive the exact message you've sent
-      operationId: echo
-      parameters:
-        - name: message
-          in: body
-          description: 'Echo payload'
-          required: true
-          schema:
-            type: string
-            example: 'Hello world!'
-      security:
-        - auth_token: []
-      responses:
-        '200':
-          description: 'OK'
+          description: Wrong request
           examples:
-            'application/json': 'Hello world!'
-          schema:
-            type: string
-          # docuemnt headers for this repsonse
-          headers:
-            X-Rate-Limit: # Header name
-              type: integer # Header value type
-              format: int32 # Header value format
-              description: calls per hour allowed by the user
-            X-Expires-After:
-              type: string
-              format: date-time
-              description: date in UTC when token expires
+            application/json:
+              message: Wrong request
+        '401':
+          description: Not authorized
+          examples:
+            application/json:
+              message: Authentication required. Token not provided.
+        '403':
+          description: Forbidden action
+          examples:
+            application/json:
+              message: Authentication required. Invalid or expired token provided.
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+
+  # '/users/{username}': # path parameter in curly braces
+  #   # documentation for GET operation for this path
+
+  #   # parameters list that are used with each operation for this path
+  #   parameters:
+  #     - name: pretty_print
+  #       in: query # place where paramter is passed: path, header, query or body, formData
+  #       description: Pretty print response
+  #       # type of the paramter: string, number, integer, boolean, array
+  #       type: boolean
+  #   get:
+  #     tags:
+  #       - User
+
+  #     # summary is up to 120 symbold but we recommend to be shortest as possible
+  #     summary: Get user by user name
+
+  #     # you can use GFM in operation description too: https://guides.github.com/features/mastering-markdown
+  #     description: |
+  #       Some description of the operation.
+  #       You can use `markdown` here.
+
+  #     # operationId should be unique across the whole specification
+  #     operationId: getUserByName
+
+  #     # list of parameters for the operation
+  #     parameters:
+  #       - name: username
+  #         in: path
+  #         description: 'The name that needs to be fetched'
+  #         required: true
+  #         type: string
+  #       - name: with_email
+  #         in: query
+  #         description: Filter users without email
+  #         type: boolean
+
+  #     # security schemas applied to this operation
+  #     security:
+  #       - auth_token: []
+  #     # overwriting default global produces
+  #     produces:
+  #       - application/json
+  #     responses: # list of responses
+  #       '200':
+  #         description: Success
+  #         schema: # response schema can be specified for each response
+  #           $ref: '#/definitions/User'
+  #         examples:
+  #         # repsonse samples for each type operation produces
+  #           application/json:
+  #             username: user1
+  #             email: user@example.com
+  #       '403':
+  #         description: Forbidden
+  #       '404':
+  #         description: User not found
+  #   # documentation for PUT operation for this path
+  #   put:
+  #     tags:
+  #       - User
+  #     summary: Updated user
+  #     description: This can only be done by the logged in user.
+  #     operationId: updateUser
+  #     produces:
+  #       - application/json
+  #     parameters:
+  #       - name: username
+  #         in: path
+  #         description: The name that needs to be updated
+  #         required: true
+  #         type: string
+  #       - in: body
+  #         name: body
+  #         description: Updated user object
+  #         required: true
+  #         # for body parameter you should specify request schema instead of type
+  #         schema:
+  #           $ref: '#/definitions/User'
+  #     security:
+  #       - auth_token: []
+  #     responses:
+  #       '200':
+  #         description: OK
+  #       '400':
+  #         description: Invalid user supplied
+  #       '404':
+  #         description: User not found
+
+  # '/echo':
+  #   post:
+  #     tags:
+  #       - Echo
+  #     summary: Echo test
+  #     description: Receive the exact message you've sent
+  #     operationId: echo
+  #     parameters:
+  #       - name: message
+  #         in: body
+  #         description: 'Echo payload'
+  #         required: true
+  #         schema:
+  #           type: string
+  #           example: 'Hello world!'
+  #     security:
+  #       - auth_token: []
+  #     responses:
+  #       '200':
+  #         description: 'OK'
+  #         examples:
+  #           'application/json': 'Hello world!'
+  #         schema:
+  #           type: string
+  #         # docuemnt headers for this repsonse
+  #         headers:
+  #           X-Rate-Limit: # Header name
+  #             type: integer # Header value type
+  #             format: int32 # Header value format
+  #             description: calls per hour allowed by the user
+  #           X-Expires-After:
+  #             type: string
+  #             format: date-time
+  #             description: date in UTC when token expires
 # An object to hold data types that can be consumed and produced by operations.
 # These data types can be primitives, arrays or models.
 definitions:
+  Dictionary:
+    type: object
+    example:
+      countries:
+        ESP: Spain
+        FRA: France
+        PRT: Portugal
+        ...: ...
+      drilldown:
+        campaign: Campaign
+        exchange: Ad Exchange
+        os: Operating system
+        ...: ...
+      kpis:
+        offers: Bid offers
+        bids: Bids
+        impressions: Impressions
+        clicks: Clicks
+        ...: ...
+      ...: ...
+  Report:
+    type: object
+    example:
+      - day: '2017-08-01'
+        impressions: 12304
+        clicks: 2349
+        events1: 44
+      - day: '2017-08-02'
+        impressions: 40004
+        clicks: 5049
+        events1: 20
+      - ...: ...
   Email:
     description: User email address
     type: string
     format: email
     example: john.smith@example.com
   User:
-    type: object
-    properties:
-      username:
-        description: User supplied username
-        type: string
-        minLength: 4
-        example: John78
-      firstName:
-        description: User first name
-        type: string
-        minLength: 1
-        example: John
-      lastName:
-        description: User last name
-        type: string
-        minLength: 1
-        example: Smith
-      email:
-        $ref: '#/definitions/Email'
-  Identifier:
-    description: Unique identifier
-    type: string
-    len
-    example: eeeefwu98fkt6abxuytfl5ao43sjx767
-  Image:
-    description: Image URL
-    type: string
-    format: url
-    example: http://d2wt9ed5gia51z.cloudfront.net/xxxxxxxxxxxxxxxx
-  Name:
-    description: A name for humans
-    type: string
-    example: This Is Just a Name
-  State:
-    description: State in the platform
-    type: string
-    example: active
-  Organization:
-    type: object
-    properties:
-      id:
-        $ref: '#/definitions/Identifier'
-      name:
-        $ref: '#/definitions/Name'
-      image:
-        $ref: '#/definitions/Image'
-      state:
-        $ref: '#/definitions/State'
-  Session:
     type: object
     properties:
       id:
@@ -323,8 +451,48 @@ definitions:
         type: string
         minLength: 1
         example: 'editor'
-      organization:
-        $ref: '#/definitions/Organization'
+  Identifier:
+    description: Unique identifier
+    type: string
+    minLength: 16
+    maxLength: 32
+    example: eeeefwu98fkt6abxuytfl5ao43sjx767
+  Image:
+    description: Image URL
+    type: string
+    format: url
+    example: http://d2wt9ed5gia51z.cloudfront.net/xxxxxxxxxxxxxxxx
+  Name:
+    description: A name for humans
+    type: string
+    example: This Is Just a Name
+  State:
+    description: State in the platform
+    type: string
+    example: active
+  Organization:
+    type: object
+    properties:
+      id:
+        $ref: '#/definitions/Identifier'
+      name:
+        $ref: '#/definitions/Name'
+      image:
+        $ref: '#/definitions/Image'
+      state:
+        $ref: '#/definitions/State'
+  Session:
+    allOf:
+      - $ref: '#/definitions/User'
+      - type: object
+        description: Authenticated session
+        properties:
+          organization:
+            $ref: '#/definitions/Organization'
+          users:
+            type: array
+            items:
+              $ref: '#/definitions/User'
   Status:
     type: object
     properties:
