@@ -1,0 +1,10 @@
+{
+  "generator-openapi-repo": {
+    "importExistingSpec": false,
+    "name": "mediasmart",
+    "repo": "mediasmart/api-reference",
+    "splitSpec": false,
+    "samples": true,
+    "installSwaggerUI": true
+  }
+}
