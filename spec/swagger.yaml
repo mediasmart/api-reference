@@ -159,11 +159,66 @@ paths:
           type: string
       produces:
         - application/json
+      security:
+        - auth_token: []
       responses:
         '200':
           description: Success
           schema: # response schema can be specified for each response
             $ref: '#/definitions/Dictionary'
+        '400':
+          description: Wrong request
+          examples:
+            application/json:
+              message: Wrong request
+        '401':
+          description: Not authorized
+          examples:
+            application/json:
+              message: Authentication required. Token not provided.
+        '403':
+          description: Forbidden action
+          examples:
+            application/json:
+              message: Authentication required. Invalid or expired token provided.
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+
+  '/api/analytics/summary/{kpi}':
+    get:
+      security:
+        - auth_token: []
+      tags:
+        - analytics
+      summary: KPI timeline
+      description: Retrieves a general view of the evolution of user's campaigns, during the last week, based on a provided KPI.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: kpi
+          in: path
+          description: KPI to retrieve
+          type: string
+          required: true
+        - name: campaigns
+          in: query
+          type: string
+          format: id1,id2,id3
+          description: Campaign identifiers (comma separated)
+      produces:
+        - application/json
+        - text/csv
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/timeline'
         '400':
           description: Wrong request
           examples:
@@ -405,6 +460,20 @@ definitions:
         bids: Bids
         impressions: Impressions
         clicks: Clicks
+        ...: ...
+      ...: ...
+  timeline:
+    type: object
+    example:
+      id1:
+        '2018-05-03': 3234
+        '2018-05-04': 3223
+        '2018-05-05': 3001
+        ...: ...
+      id2:
+        '2018-05-03': 32
+        '2018-05-04': 433
+        '2018-05-05': 0
         ...: ...
       ...: ...
   Report:
