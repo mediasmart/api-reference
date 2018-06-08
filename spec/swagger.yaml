@@ -76,6 +76,184 @@ securityDefinitions:
     in: header
     name: authorization
 
+definitions:
+  KPI: &KPI
+    type: string
+    description: Key Performance Indicator. Available values may depend on your account, so check `kpis` key in the dictionary to retrieve the full list.
+    enum: 
+      - offers
+      - bids
+      - bidpercent
+      - won
+      - wonpercent
+      - wonprice
+      - impressions
+      - clicks
+      - ctr
+      - events1
+      - cr1
+      - events2
+      - cr2
+      - events3
+      - cr3
+      - events4
+      - cr4
+      - events5
+      - cr5
+      - cpm
+      - cpc
+      - cpa1
+      - cpa2
+      - cpa3
+      - cpa4
+      - cpa5
+      - cpvcomplete
+      - cpvstart
+      - videostart
+      - videofirstquartile
+      - videomidpoint
+      - videothirdquartile
+      - videocomplete
+      - views
+      - vr_start
+      - vr_firstquartile
+      - vr_midpoint
+      - vr_thirdquartile
+      - vr_complete
+  Dictionary:
+    type: object
+    example:
+      countries:
+        ESP: Spain
+        FRA: France
+        PRT: Portugal
+        ...: ...
+      drilldown:
+        campaign: Campaign
+        exchange: Ad Exchange
+        os: Operating system
+        ...: ...
+      kpis:
+        offers: Bid offers
+        bids: Bids
+        impressions: Impressions
+        clicks: Clicks
+        ...: ...
+      ...: ...
+  timeline:
+    type: object
+    example:
+      id1:
+        '2018-05-03': 3234
+        '2018-05-04': 3223
+        '2018-05-05': 3001
+        ...: ...
+      id2:
+        '2018-05-03': 32
+        '2018-05-04': 433
+        '2018-05-05': 0
+        ...: ...
+      ...: ...
+  Report:
+    type: object
+    example:
+      - day: '2017-08-01'
+        impressions: 12304
+        clicks: 2349
+        events1: 44
+      - day: '2017-08-02'
+        impressions: 40004
+        clicks: 5049
+        events1: 20
+      - ...: ...
+  Email:
+    description: User email address
+    type: string
+    format: email
+    example: john.smith@example.com
+  User:
+    type: object
+    properties:
+      id:
+        $ref: '#/definitions/Identifier'
+      token:
+        description: Authorization token
+        type: string
+        minLength: 32
+        maxLength: 32
+        example: padyfwu23fkt6abxf3lfl5ao43sjxden
+      username:
+        description: User username
+        type: string
+        minLength: 1
+        example: anexampleuser
+      name:
+        $ref: '#/definitions/Name'
+      email:
+        $ref: '#/definitions/Email'
+      image:
+        $ref: '#/definitions/Image'
+      role:
+        description: User role
+        type: string
+        minLength: 1
+        example: 'editor'
+  Identifier:
+    description: Unique identifier
+    type: string
+    minLength: 16
+    maxLength: 32
+    example: eeeefwu98fkt6abxuytfl5ao43sjx767
+  Image:
+    description: Image URL
+    type: string
+    format: url
+    example: http://d2wt9ed5gia51z.cloudfront.net/xxxxxxxxxxxxxxxx
+  Name:
+    description: A name for humans
+    type: string
+    example: This Is Just a Name
+  State:
+    description: State in the platform
+    type: string
+    example: active
+  Organization:
+    type: object
+    properties:
+      id:
+        $ref: '#/definitions/Identifier'
+      name:
+        $ref: '#/definitions/Name'
+      image:
+        $ref: '#/definitions/Image'
+      state:
+        $ref: '#/definitions/State'
+  Session:
+    allOf:
+      - $ref: '#/definitions/User'
+      - type: object
+        description: Authenticated session
+        properties:
+          organization:
+            $ref: '#/definitions/Organization'
+          users:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+  Status:
+    type: object
+    properties:
+      version:
+        description: API gateway version
+        type: string
+        minLength: 5
+        example: 1.3.17
+      status:
+        description: Global status
+        type: string
+        minLength: 1
+        example: All servers are OK
+
 # Holds the relative paths to the individual endpoints. The path is appended to the
 # basePath in order to construct the full URL.
 paths:
@@ -202,10 +380,9 @@ paths:
           required: true
           type: string
         - name: kpi
-          in: path
-          description: KPI to retrieve
-          type: string
           required: true
+          in: path
+          <<: *KPI
         - name: campaigns
           in: query
           type: string
@@ -441,137 +618,4 @@ paths:
   #             description: date in UTC when token expires
 # An object to hold data types that can be consumed and produced by operations.
 # These data types can be primitives, arrays or models.
-definitions:
-  Dictionary:
-    type: object
-    example:
-      countries:
-        ESP: Spain
-        FRA: France
-        PRT: Portugal
-        ...: ...
-      drilldown:
-        campaign: Campaign
-        exchange: Ad Exchange
-        os: Operating system
-        ...: ...
-      kpis:
-        offers: Bid offers
-        bids: Bids
-        impressions: Impressions
-        clicks: Clicks
-        ...: ...
-      ...: ...
-  timeline:
-    type: object
-    example:
-      id1:
-        '2018-05-03': 3234
-        '2018-05-04': 3223
-        '2018-05-05': 3001
-        ...: ...
-      id2:
-        '2018-05-03': 32
-        '2018-05-04': 433
-        '2018-05-05': 0
-        ...: ...
-      ...: ...
-  Report:
-    type: object
-    example:
-      - day: '2017-08-01'
-        impressions: 12304
-        clicks: 2349
-        events1: 44
-      - day: '2017-08-02'
-        impressions: 40004
-        clicks: 5049
-        events1: 20
-      - ...: ...
-  Email:
-    description: User email address
-    type: string
-    format: email
-    example: john.smith@example.com
-  User:
-    type: object
-    properties:
-      id:
-        $ref: '#/definitions/Identifier'
-      token:
-        description: Authorization token
-        type: string
-        minLength: 32
-        maxLength: 32
-        example: padyfwu23fkt6abxf3lfl5ao43sjxden
-      username:
-        description: User username
-        type: string
-        minLength: 1
-        example: anexampleuser
-      name:
-        $ref: '#/definitions/Name'
-      email:
-        $ref: '#/definitions/Email'
-      image:
-        $ref: '#/definitions/Image'
-      role:
-        description: User role
-        type: string
-        minLength: 1
-        example: 'editor'
-  Identifier:
-    description: Unique identifier
-    type: string
-    minLength: 16
-    maxLength: 32
-    example: eeeefwu98fkt6abxuytfl5ao43sjx767
-  Image:
-    description: Image URL
-    type: string
-    format: url
-    example: http://d2wt9ed5gia51z.cloudfront.net/xxxxxxxxxxxxxxxx
-  Name:
-    description: A name for humans
-    type: string
-    example: This Is Just a Name
-  State:
-    description: State in the platform
-    type: string
-    example: active
-  Organization:
-    type: object
-    properties:
-      id:
-        $ref: '#/definitions/Identifier'
-      name:
-        $ref: '#/definitions/Name'
-      image:
-        $ref: '#/definitions/Image'
-      state:
-        $ref: '#/definitions/State'
-  Session:
-    allOf:
-      - $ref: '#/definitions/User'
-      - type: object
-        description: Authenticated session
-        properties:
-          organization:
-            $ref: '#/definitions/Organization'
-          users:
-            type: array
-            items:
-              $ref: '#/definitions/User'
-  Status:
-    type: object
-    properties:
-      version:
-        description: API gateway version
-        type: string
-        minLength: 5
-        example: 1.3.17
-      status:
-        description: Global status
-        type: string
-        minLength: 1
-        example: All servers are OK
+
