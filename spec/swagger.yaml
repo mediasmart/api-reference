@@ -209,6 +209,28 @@ definitions:
         clicks: Clicks
         ...: ...
       ...: ...
+  Mosaic:
+    type: object
+    example:
+      ESP:
+        esp:a:01: Spain A01, Elites > Classic Elites
+        esp:a:02: Spain A02, Elites > Urban Elites
+        esp:a:03: Spain A03, Elites > Residential Elites
+        esp:a:04: Spain A04, Elites > New Residential Elites
+        ...: ...
+      GBR:
+        gbr:a:01: UK A01, City Prosperity > World-Class Wealth
+        gbr:a:02: UK A02, City Prosperity > Uptown Elite
+        gbr:a:03: UK A03, City Prosperity > Penthouse Chic
+        gbr:a:04: UK A04, City Prosperity > Metro High Flyers
+        ...: ...
+  Audiences:
+    type: object
+    example:
+      audience012: 3244
+      audience340: 32
+      audience921: 1233
+      ...: ...
   timeline:
     type: object
     example:
@@ -525,6 +547,70 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/Cities'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/dictionary/mosaic':
+    get:
+      tags:
+        - dictionaries
+      summary: mosaic
+      description: Retrieves all available mosaic profiles from specified countries
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: countries
+          in: query
+          type: string
+          <<: *CountriesList
+      produces:
+        - application/json
+      security:
+        - auth_token: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Mosaic'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/dictionary/audiences':
+    get:
+      tags:
+        - dictionaries
+      summary: dmp audiences
+      description: Retrieves all available audiences from your account DMP. Each one includes the amount of devices it has for the current day. Audiences that were loaded in the past but are now empty will list zero elements.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+      produces:
+        - application/json
+      security:
+        - auth_token: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Audiences'
         '400':
           $ref: '#/responses/400'
         '401':
