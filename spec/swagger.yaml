@@ -751,7 +751,6 @@ paths:
           description: Campaign identifiers (comma separated)
       produces:
         - application/json
-        - text/csv
       responses:
         '200':
           description: Success
@@ -791,7 +790,6 @@ paths:
           description: Campaign identifiers (comma separated)
       produces:
         - application/json
-        - text/csv
       responses:
         '200':
           description: Success
@@ -831,7 +829,6 @@ paths:
           description: Campaign identifiers (comma separated)
       produces:
         - application/json
-        - text/csv
       responses:
         '200':
           description: Success
@@ -871,7 +868,6 @@ paths:
           description: Campaign identifiers (comma separated)
       produces:
         - application/json
-        - text/csv
       responses:
         '200':
           description: Success
@@ -930,7 +926,6 @@ paths:
           <<: *RULES
       produces:
         - application/json
-        - text/csv
       responses:
         '200':
           description: Success
@@ -955,6 +950,218 @@ paths:
         - name: authorization
           in: header
           description: Authorization token
+          required: true
+          type: string
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: drilldown
+          in: query
+          format: one,other,another
+          description: Drilldown variables (comma separated). Available values may depend on your account, so check `drilldown` key in the dictionary to retrieve the full list.
+          <<: *DRILLDOWN
+        - name: kpis
+          in: query
+          format: one,other,another
+          description: Key Performance Indicators (comma separated). Available values may depend on your account, so check `kpis` key in the dictionary to retrieve the full list.
+          <<: *KPI
+        - name: format
+          in: query
+          <<: *FILE_FORMAT
+        - name: raw
+          in: query
+          description: Active to avoid numbers rounding
+          <<: *BOOLEAN
+        - name: rules
+          in: query
+          <<: *RULES
+      produces:
+        - application/json
+        - text/csv
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Report'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}/analytics/summary':
+    get:
+      security:
+        - auth_token: []
+      tags:
+        - analytics
+      summary: campaign > summary
+      description: Retrieves a simple summary of how a campaign is performing today, compared with the previous day.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Campaign identifier
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              impressions:
+                today: 40223
+                yesterday: 50123
+              clicks:
+                today: 321
+                yesterday: 302
+              ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}/analytics/kpi/{kpi}':
+    get:
+      security:
+        - auth_token: []
+      tags:
+        - analytics
+      summary: campaign > kpi/{kpi}
+      description: Retrieves the evolution of a KPI during the last week, for a single campaign
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Campaign identifier
+          required: true
+          type: string
+        - name: kpi
+          required: true
+          in: path
+          <<: *KPI
+        - name: campaigns
+          in: query
+          type: string
+          format: id1,id2,id3
+          description: Campaign identifiers (comma separated)
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              impressions:
+                '2018-05-03': 3234
+                '2018-05-04': 3223
+                '2018-05-05': 3001
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}/analytics/drilldown/{variable}':
+    get:
+      tags:
+        - analytics
+      summary: campaign > drilldown/{variable}
+      description: Compute the drilldown of a single variable
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Campaign identifier
+          required: true
+          type: string
+        - name: variable
+          in: path
+          required: true
+          <<: *DRILLDOWN
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: kpis
+          in: query
+          format: one,other,another
+          description: Key Performance Indicators (comma separated). Available values may depend on your account, so check `kpis` key in the dictionary to retrieve the full list.
+          <<: *KPI
+        - name: raw
+          in: query
+          description: Active to avoid numbers rounding
+          <<: *BOOLEAN
+        - name: rules
+          in: query
+          <<: *RULES
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Drilldown'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}/analytics/report':
+    get:
+      tags:
+        - analytics
+      summary: campaign > custom-report
+      description: Computes a customized report, specifying drilldown variables, kpis and dates range.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Campaign identifier
           required: true
           type: string
         - name: from
