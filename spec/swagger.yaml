@@ -35,10 +35,10 @@ consumes:
   - application/json
   - multipart/form-data
 tags:
-  - name: dictionaries
-    description: Available values in mediasmart platform
   - name: public
     description: Public operations. Authentication is not required.
+  - name: dictionaries
+    description: Available values in mediasmart platform
   - name: analytics
     description: Performance and spending reports
   - name: User
@@ -130,6 +130,52 @@ definitions:
       - ESP:MD
       - ESP:RI
       - ESP:CE
+  FILE_FORMAT: &FILE_FORMAT
+    type: string
+    description: Output file format
+    enum:
+      - json
+      - excel
+      - csv
+  DRILLDOWN: &DRILLDOWN
+    type: string
+    description: Drilldown variable. Available values may depend on your account, so check `drilldown` key in the dictionary to retrieve the full list.
+    enum:
+      - campaign
+      - carrier
+      - connectiontype
+      - controlid
+      - countrycode
+      - creaid
+      - creativeid
+      - creativetype
+      - day
+      - deal
+      - devicetype
+      - domain
+      - exchange
+      - gender
+      - hour
+      - iabcategory
+      - iabsubcategory
+      - idtype
+      - os
+      - size
+      - source
+      - userlanguage
+      - ...
+  DATE: &DATE
+    type: string
+    format: YYYY-MM-DD
+  RULES: &RULES
+    type: string
+    format: variable1=[value1,value2];variable2!=[value3]
+    description: Rules separated by semicolon. Each rule must follow the format `{variable}{operator}[{value1},{value2},...]`, where `variable` is any drilldown variable, and `operator` is `=` for equality or `!=` for difference. Example `countrycode=[FRA,ESP]`.
+  BOOLEAN: &BOOLEAN
+    type: boolean
+    enum:
+      - true
+      - false
   KPI: &KPI
     type: string
     description: Key Performance Indicator. Available values may depend on your account, so check `kpis` key in the dictionary to retrieve the full list.
@@ -173,6 +219,37 @@ definitions:
       - vr_midpoint
       - vr_thirdquartile
       - vr_complete
+  KPI_LIMITS: &KPI_LIMITS
+    type: string
+    description: Key Performance Indicator.
+    enum:
+      - wonprice
+      - impressions
+      - clicks
+  KPI_TIMELINES: &KPI_TIMELINES
+    type: string
+    description: Key Performance Indicator.
+    enum:
+      - wonprice
+      - cpm
+      - cpc
+      - cpa1
+      - cpa2
+      - cpa3
+      - cpa4
+      - cpa5
+  KPI_GOAL: &KPI_GOAL
+    type: string
+    description: Key Performance Indicator. Available values may depend on your account, so check `goal_kpis` key in the dictionary to retrieve the full list.
+    enum:
+      - cpm
+      - cpc
+      - cpa1
+      - cpa2
+      - cpa3
+      - cpa4
+      - cpa5
+      - cpv
   Countries:
     type: object
     example:
@@ -245,6 +322,35 @@ definitions:
         '2018-05-05': 0
         ...: ...
       ...: ...
+  limits:
+    type: object
+    example:
+      expected:
+        '2018-05-03': 3234
+        '2018-05-04': 3223
+        '2018-05-05': 3001
+        ...: ...
+      observed:
+        '2018-05-03': 3232
+        '2018-05-04': 3433
+        '2018-05-05': 2992
+        ...: ...
+      global:
+        time: 30
+        delivery: 25
+  Drilldown:
+    type: object
+    example:
+      cpm:
+        FRA: 13
+        ESP: 4
+        PRT: 29
+        ...: ...
+      impressions:
+        FRA: 1233
+        ESP: 12304
+        PRT: 2349
+        ...: ...
   Regions:
     type: object
     example:
@@ -626,8 +732,128 @@ paths:
         - auth_token: []
       tags:
         - analytics
-      summary: KPI timeline
-      description: Retrieves a general view of the evolution of user's campaigns, during the last week, based on a provided KPI.
+      summary: summary/{kpi}
+      description: Retrieves a general view of the evolution of one or more campaigns, during the last week, based on a provided KPI.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: kpi
+          required: true
+          in: path
+          <<: *KPI_TIMELINES
+        - name: campaigns
+          in: query
+          type: string
+          format: id1,id2,id3
+          description: Campaign identifiers (comma separated)
+      produces:
+        - application/json
+        - text/csv
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/timeline'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/summary/limits/{kpi}':
+    get:
+      security:
+        - auth_token: []
+      tags:
+        - analytics
+      summary: summary/limits/{kpi}
+      description: Returns recent limits status for your campaigns
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: kpi
+          required: true
+          in: path
+          <<: *KPI_LIMITS
+        - name: campaigns
+          in: query
+          type: string
+          format: id1,id2,id3
+          description: Campaign identifiers (comma separated)
+      produces:
+        - application/json
+        - text/csv
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/limits'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/summary/goals/{kpi}':
+    get:
+      security:
+        - auth_token: []
+      tags:
+        - analytics
+      summary: summary/goals/{kpi}
+      description: Retrieves a summary about pricing goals, both expected and observed values
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: kpi
+          required: true
+          in: path
+          <<: *KPI_GOAL
+        - name: campaigns
+          in: query
+          type: string
+          format: id1,id2,id3
+          description: Campaign identifiers (comma separated)
+      produces:
+        - application/json
+        - text/csv
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/limits'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/kpi/{kpi}':
+    get:
+      security:
+        - auth_token: []
+      tags:
+        - analytics
+      summary: kpi/{kpi}
+      description: Retrieves the evolution of a KPI during the last week
       parameters:
         - name: authorization
           in: header
@@ -649,8 +875,67 @@ paths:
       responses:
         '200':
           description: Success
-          schema: # response schema can be specified for each response
-            $ref: '#/definitions/timeline'
+          schema:
+            type: object
+            example:
+              impressions:
+                '2018-05-03': 3234
+                '2018-05-04': 3223
+                '2018-05-05': 3001
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/drilldown/{variable}':
+    get:
+      tags:
+        - analytics
+      summary: drilldown/{variable}
+      description: Compute the drilldown of a single variable
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: variable
+          in: path
+          required: true
+          <<: *DRILLDOWN
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: kpis
+          in: query
+          format: one,other,another
+          description: Key Performance Indicators (comma separated). Available values may depend on your account, so check `kpis` key in the dictionary to retrieve the full list.
+          <<: *KPI
+        - name: raw
+          in: query
+          description: Active to avoid numbers rounding
+          <<: *BOOLEAN
+        - name: rules
+          in: query
+          <<: *RULES
+      produces:
+        - application/json
+        - text/csv
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Drilldown'
         '400':
           $ref: '#/responses/400'
         '401':
@@ -664,7 +949,7 @@ paths:
     get:
       tags:
         - analytics
-      summary: Custom report
+      summary: custom-report
       description: Computes a customized report, specifying drilldown variables, kpis and dates range.
       parameters:
         - name: authorization
@@ -675,45 +960,38 @@ paths:
         - name: from
           in: query
           description: Start date
-          type: string
-          format: YYYY-MM-DD
+          <<: *DATE
         - name: to
           in: query
           description: End date
-          type: string
-          format: YYYY-MM-DD
+          <<: *DATE
         - name: drilldown
           in: query
-          type: string
           format: one,other,another
-          description: Drilldown variables (comma separated)
+          description: Drilldown variables (comma separated). Available values may depend on your account, so check `drilldown` key in the dictionary to retrieve the full list.
+          <<: *DRILLDOWN
         - name: kpis
           in: query
-          type: string
           format: one,other,another
-          description: KPIs (comma separated)
+          description: Key Performance Indicators (comma separated). Available values may depend on your account, so check `kpis` key in the dictionary to retrieve the full list.
+          <<: *KPI
         - name: format
           in: query
-          type: string
-          format: json|csv|excel
-          description: Output file format
+          <<: *FILE_FORMAT
         - name: raw
           in: query
-          type: boolean
-          format: true|false
           description: Active to avoid numbers rounding
+          <<: *BOOLEAN
         - name: rules
           in: query
-          type: string
-          format: variable1=[value1,value2];variable2!=[value3]
-          description: Rules separated by semicolon.
+          <<: *RULES
       produces:
         - application/json
         - text/csv
       responses:
         '200':
           description: Success
-          schema: # response schema can be specified for each response
+          schema:
             $ref: '#/definitions/Report'
         '400':
           $ref: '#/responses/400'
