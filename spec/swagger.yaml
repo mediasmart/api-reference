@@ -35,6 +35,8 @@ consumes:
   - application/json
   - multipart/form-data
 tags:
+  - name: dictionaries
+    description: Available values in mediasmart platform
   - name: public
     description: Public operations. Authentication is not required.
   - name: analytics
@@ -51,10 +53,66 @@ securityDefinitions:
     name: authorization
 
 definitions:
+  CountriesList: &CountriesList
+    type: string
+    description: Country codes list (comma separated). Available values may depend on your account, so check `countries` dictionary to retrieve the full list.
+    format: code1,code2,code3
+    enum:
+      - AFG
+      - ALB
+      - DZA
+      - ASM
+      - AND
+      - AGO
+      - AIA
+      - ATA
+      - ATG
+      - ARG
+      - ARM
+      - ABW
+      - AUS
+      - AUT
+      - AZE
+      - BHS
+      - BHR
+      - BGD
+      - BRB
+      - BLR
+      - BEL
+      - BLZ
+      - BEN
+      - BMU
+      - BTN
+      - BOL
+      - BIH
+      - BWA
+      - BVT
+      - BRA
+      - IOT
+      - BRN
+      - BGR
+      - BFA
+      - BDI
+      - KHM
+      - ...
+  RegionsList: &RegionsList
+    type: string
+    description: Region codes list (comma separated). Available values may depend on your account, so check `regions` dictionary to retrieve the full list.
+    format: code1,code2,code3
+    enum:
+      - FRA:F
+      - FRA:P
+      - ESP:GA
+      - ESP:CM
+      - ESP:AS
+      - ESP:MD
+      - ESP:RI
+      - ESP:CE
+      - ...
   KPI: &KPI
     type: string
     description: Key Performance Indicator. Available values may depend on your account, so check `kpis` key in the dictionary to retrieve the full list.
-    enum: 
+    enum:
       - offers
       - bids
       - bidpercent
@@ -94,6 +152,22 @@ definitions:
       - vr_midpoint
       - vr_thirdquartile
       - vr_complete
+  Countries:
+    type: object
+    example:
+      ESP: Spain
+      FRA: France
+      PRT: Portugal
+      ...: ...
+  Cities:
+    type: object
+    example:
+      3121424: Gijón
+      3110962: Sama
+      3129135: Avilés
+      3116789: Mieres
+      3114711: Oviedo
+      ...: ...
   Dictionary:
     type: object
     example:
@@ -127,6 +201,14 @@ definitions:
         '2018-05-04': 433
         '2018-05-05': 0
         ...: ...
+      ...: ...
+  Regions:
+    type: object
+    example:
+      ESP:GA: Galicia
+      ESP:CM: Castille-La Mancha
+      FRA:F: Centre
+      FRA:P: Lower Normandy
       ...: ...
   Report:
     type: object
@@ -244,6 +326,8 @@ paths:
             $ref: '#/definitions/Status'
         '429':
           description: Quota exceeded
+          schema:
+            $ref: '#/definitions/Status'
           examples:
             application/json:
               message: You've exceeded your requests per minute quota
@@ -251,7 +335,7 @@ paths:
     post:
       tags:
         - public
-      summary: Login to get a token
+      summary: login
       description: Performs a login to retrieve a session including an authorization token. That token can be used as `authorization` header for later requests.
       consumes:
         - application/json
@@ -298,7 +382,9 @@ paths:
 
   '/api/dictionary':
     get:
-      summary: Dictionary
+      tags:
+        - dictionaries
+      summary: dictionary
       description: Retrieves the main dictionary, including all values for everything in our platform. From available
         campaign states to existing user roles.
       parameters:
@@ -314,8 +400,146 @@ paths:
       responses:
         '200':
           description: Success
-          schema: # response schema can be specified for each response
+          schema:
             $ref: '#/definitions/Dictionary'
+        '400':
+          description: Wrong request
+          examples:
+            application/json:
+              message: Wrong request
+        '401':
+          description: Not authorized
+          examples:
+            application/json:
+              message: Authentication required. Token not provided.
+        '403':
+          description: Forbidden action
+          examples:
+            application/json:
+              message: Authentication required. Invalid or expired token provided.
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+
+  '/api/dictionary/countries':
+    get:
+      tags:
+        - dictionaries
+      summary: countries
+      description: Retrieves all available countries for reporting or campaigns configuration
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+      produces:
+        - application/json
+      security:
+        - auth_token: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Countries'
+        '400':
+          description: Wrong request
+          examples:
+            application/json:
+              message: Wrong request
+        '401':
+          description: Not authorized
+          examples:
+            application/json:
+              message: Authentication required. Token not provided.
+        '403':
+          description: Forbidden action
+          examples:
+            application/json:
+              message: Authentication required. Invalid or expired token provided.
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+
+  '/api/dictionary/regions':
+    get:
+      tags:
+        - dictionaries
+      summary: regions
+      description: Retrieves all available regions from specified countries list
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: countries
+          in: query
+          type: string
+          <<: *CountriesList
+      produces:
+        - application/json
+      security:
+        - auth_token: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Regions'
+        '400':
+          description: Wrong request
+          examples:
+            application/json:
+              message: Wrong request
+        '401':
+          description: Not authorized
+          examples:
+            application/json:
+              message: Authentication required. Token not provided.
+        '403':
+          description: Forbidden action
+          examples:
+            application/json:
+              message: Authentication required. Invalid or expired token provided.
+        '429':
+          description: Quota exceeded
+          examples:
+            application/json:
+              message: You've exceeded your requests per minute quota
+
+  '/api/dictionary/cities':
+    get:
+      tags:
+        - dictionaries
+      summary: cities
+      description: Retrieves all available cities from specified countries or regions list
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: countries
+          in: query
+          type: string
+          <<: *CountriesList
+        - name: regions
+          in: query
+          type: string
+          <<: *RegionsList
+      produces:
+        - application/json
+      security:
+        - auth_token: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Cities'
         '400':
           description: Wrong request
           examples:
