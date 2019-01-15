@@ -4012,7 +4012,7 @@ paths:
     post:
       tags:
         - betatesters
-      summary: /organization/{id}/betatesters
+      summary: /organization/:id/betatesters
       description: Creates a new betatester in the provided organization, where :id is the organization identifier.
       consumes:
         - application/json
@@ -4064,8 +4064,8 @@ paths:
     delete:
       tags:
         - betatesters
-      summary: /organization/{id}/betatesters
-      description: Removes a deal from an organization, where :org_id is the organization identifier, and :id is the deal identifier to be removed.
+      summary: /organization/:id/betatesters
+      description: Removes a deal from an organization, where :id is the organization identifier
       consumes:
         - application/json
       parameters:
@@ -4114,7 +4114,7 @@ paths:
       summary: /session-data
       description: >
         Retrieves all session data available files in your organization for a given date.
-        
+
         If no date is specified, then the current day will be used. If from, to and date are specified, the date parameter will be ignored and from and to will be taken into account.
       parameters:
         - name: authorization
