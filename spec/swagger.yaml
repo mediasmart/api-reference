@@ -164,6 +164,78 @@ definitions:
       - source
       - userlanguage
       - ...
+  PUBLISHERS_DRILLDOWN: &PUBLISHERS_DRILLDOWN
+    type: string
+    description: Availability publishers drilldown variable.
+    enum:
+      - countrycode
+      - size
+      - url
+      - adtype
+      - exchange
+      - publisher
+      - iabcategory
+      - iabsubcategory
+      - day
+      - pricefloor
+      - appsite
+      - publishertype
+      - keyword
+      - os
+  DRILLDOWN_AVAILABILITY: &DRILLDOWN_AVAILABILITY
+    type: string
+    description: Availability drilldown variable.
+    enum:
+      - day
+      - exchange
+      - connectiontype
+      - carrier
+      - idtype
+      - countrycode
+      - userlanguage
+      - devicetype
+      - os
+      - osversion
+      - size
+      - agegroup
+      - gender
+      - dnt
+      - pricefloor
+      - source
+      - iabcategory
+      - iabsubcategory
+      - locationtype
+  DRILLDOWN_DAYSTATS: &DRILLDOWN_DAYSTATS
+    type: string
+    description: Daystats drilldown variable.
+    enum:
+      - campaign
+      - day
+      - exchange
+      - k:age
+      - p:type
+      - p:size
+      - p:cat
+      - p:conn
+      - p:creativename
+      - p:creativetype
+      - p:deal
+      - p:devicetype
+      - p:eventid
+      - k:gender
+      - p:geo
+      - p:region
+      - p:exacthour
+      - p:isp
+      - p:language
+      - k:operator
+      - k:os
+      - p:pf
+      - p:pub
+      - p:refresh
+      - p:ab
+      - p:idtype
+      - k:cat
   DATE: &DATE
     type: string
     format: YYYY-MM-DD
@@ -250,6 +322,52 @@ definitions:
       - cpa4
       - cpa5
       - cpv
+  KPI_DAYSTATS: &KPI_DAYSTATS
+    type: string
+    description: Key Performance Indicator. Available values may depend on your account, so check `daystats_kpis` key in the dictionary to retrieve the full list.
+    enum:
+      - won
+      - wonpercent
+      - bidcost
+      - bcpm
+      - bcpc
+      - bcpa
+      - impressions
+      - clicks
+      - convs1
+      - convs2
+      - ctr
+      - tconv1
+      - tconv2
+      - ...
+  CAMPAIGN_STATES: &CAMPAIGN_STATES
+    type: string
+    description: Attribute states of the campaigns
+    enum:
+      - active
+      - inactive
+      - deleted
+      - preview
+  CREATIVE_STATES: &CREATIVE_STATES
+    type: string
+    description: Attribute states of the creatives
+    enum:
+      - active
+      - archived
+      - deleted
+      - imported
+      - pending-approval
+      - rejected
+  CREATIVE_TYPES: &CREATIVE_TYPES
+    type: string
+    description: Available types of the creatives
+    enum:
+      - image (common banner)
+      - video (custom video)
+      - audio (custom video)
+      - external-video (external VAST)
+      - dyncamic - (images with dynamic content)
+      - tag - (third party HTML+JS and MRAID tags)
   Countries:
     type: object
     example:
@@ -403,6 +521,837 @@ definitions:
         type: string
         minLength: 1
         example: 'editor'
+  Campaign:
+    type: object
+    required:
+      - name
+      - kpi
+      - value
+      - advertiser_domain
+      - countries
+      - iab_categories
+    properties:
+      id:
+        description: The campaign identifier
+        type: string
+        example: jklkjkljk3432kjk
+      name:
+        description: A name for humans
+        type: string
+        example: My Campaign
+      description:
+        description: A description
+        type: string
+        example: 'Bla bla bla'
+      state:
+        <<: *CAMPAIGN_STATES
+        example: active
+      color:
+        description: An hexadecial color
+        type: string
+        example: "#4CAF50"
+      goal:
+        description: The goal of the campaign
+        type: object
+        properties:
+          kpi:
+            <<: *KPI_GOAL
+          value:
+            type: number
+            description: Value of the kpi
+      kpi:
+        description: Goal KPI (for reporting)
+        type: string
+        example: cpa
+        enum:
+          - cpm
+          - cpc
+          - cpa1, cpa2, etc
+      value:
+        description:  Goal KPI value
+        type: number
+        example: 3.5
+      countries:
+        description: Some countries to run the campaign inside. Available countries are defined in the geography dictionary.
+        type: object
+        enum:
+          - SPA
+          - FRA
+          - CUB
+          - EGY
+          - ...
+        example:
+          - SPA
+          - FRA
+      iab_categories:
+        description: IAB Categories describing the campaign content. Abailable IAB categories are defined in the dictionary
+        type: object
+        enum:
+          - 'IAB1: Arts & Entertainment'
+          - 'IAB2: Automotive'
+          - 'IAB2-1: Automotive > Auto Parts'
+          - ...
+        example:
+          - IAB1
+          - IAB1-3
+      cpm:
+        description: Initial CPM value
+        type: number
+        example: 10
+      cost_percentage:
+        description: A distribution value for parent+strategies
+        example: 34
+      tags:
+        description: Labels for searching purpose
+        type: object
+        example:
+          - video
+          - march
+      advertiser_name:
+        description: IAB categories to define campaign content
+        type: string
+        example: Coca-Cola
+      advertiser_domain:
+        description: the advertisers domain
+        type: string
+        example: mediasmart.es
+      event_id:
+        description: An existing tracking event name
+        type: string
+        example: hello
+      tracking_tool:
+        description: A tracking tool to use
+        type: string
+        enum:
+          - mediasmart
+          - mediasmart_footfall
+          - adsquare_footfall
+          - adjust
+          - adx
+          - appsflyer
+          - emma
+          - hasoffers
+          - kochava
+          - tune
+          - s2s
+        example: mediasmart
+      attribution_window_on_click:
+        description: Number of days to attribute clicks
+        type: number
+        example: 2
+      attribution_window_on_impression:
+        description: Number of days to attribute impressions
+        type: number
+        example: 2
+      conversion_one_is_required:
+        description: Events 2-5 discarded unless event 1
+        type: boolean
+        example: true
+      supports_many_conversions_one:
+        description: Accept more than one event 1
+        type: boolean
+        example: true
+      supports_many_conversions_other:
+        description: Accept more than one event 2-5
+        type: boolean
+        example: true
+      tvty_state:
+        description: Status on TVTY platform
+        type: string
+        enum:
+          - disabled
+          - on
+          - off
+        example: ''
+      schedule:
+        $ref: '#/definitions/Schedule'
+      targeting:
+        $ref: '#/definitions/Targeting'
+      retargeting:
+        $ref: '#/definitions/Retargeting'
+      deals_and_pricing:
+        $ref: '#/definitions/Deals_and_pricing'
+      creatives:
+        $ref: '#/definitions/CampaignCreatives'
+      parent:
+        description: Parent campaign
+        type: object
+        example:
+          - ...: ...
+      strategies:
+        description: Strategy summaries list. These are created using a different route, please refer to campaign strategies
+        type: object
+        example:
+          - ...
+      organization:
+        description: Organiation of the campaign
+        type: object
+        example:
+          - ...: ...
+      created_at:
+        description: ISO date of creation
+        type: string
+        example: '2018-04-05T22:00.123Z'
+      updated_at:
+        description: ISO date of last updated
+        type: string
+        example: '2018-04-05T22:00.123Z'
+  Schedule:
+    description: Scheduling attributes
+    type: object
+    properties:
+      max_global_cost:
+        type: number
+        description: Max cost for the whole campaign life
+        example: 2500
+      max_global_impressions:
+        type: number
+        description: Max impressions for the whole campaign life
+        example: 470000
+      max_global_clicks:
+        type: number
+        description: Max clicks for the whole campaign life
+        example: 1500
+      max_daily_cost:
+        type: number
+        description: Max cost for every day
+        example: 1000
+      max_daily_impressions:
+        type: number
+        description: Max impressions for every day
+        example: 10000
+      max_daily_clicks:
+        type: number
+        description: Max clicks for every day.
+        example: 500
+      max_impressions_user:
+        type: number
+        description: Amount of impressions for the same user
+        example: 50
+      max_impressions_user_day:
+        type: number
+        description: Amount of impressions for the same user in a day
+        example: 50
+      max_impressions_user_hour:
+        type: number
+        description: Amount of impressions for the same user in a hour
+        example: 50
+      one_click_per_user:
+        type: boolean
+        description: No more ads should be shown to a user that has clicked
+        example: true
+      uniform_distribution:
+        type: boolean
+        description: Distribute the campaign during the day	
+        example: true
+      started_at:
+        type: string
+        description: When the campaign should start
+        example: '2016-05-10'
+      finished_at:
+        type: string
+        description: When the campaign should start
+        example: '2016-05-10'
+      timing:
+        type: object
+        description: Time ranges when the campaign should run
+        properties:
+          started_time_at:
+            type: string
+            description: Start hour of this range
+            example: '03:00'
+          finished_time_at:
+            type: string
+            description: End time of this range
+            example: '17:30'
+          monday:
+            type: boolean
+            description: If this range should run on monday
+          tuesday:
+            type: boolean
+            description: If this range should run on tuesday
+          wednesday:
+            type: boolean
+            description: If this range should run on wednesday
+          thursday:
+            type: boolean
+            description: If this range should run on thursday
+          friday:
+            type: boolean
+            description: If this range should run on friday
+          saturday:
+            type: boolean
+            description: If this range should run on saturday
+          sunday:
+            type: boolean
+            description: If this range should run on sunday
+  Targeting:
+    description: Targeting attributes
+    type: object
+    properties:
+      exchanges:
+        type: object
+        description: A JSON object with the Ad Exchanges where the campaign should run. Available AdExchanges are defined in the main dictionary as exchanges
+        enum:
+          - adyoulike
+          - appnexus
+          - avocarrot
+          - axonix
+          - brave
+          - cheetah
+          - dailymotion
+          - etag
+          - flurry
+          - gameloft
+          - google
+          - improve
+          - index
+          - inneractive
+          - ligatus
+          - mads
+          - marsmedia
+          - mobfox
+          - mobilda
+          - mopub
+          - nexage
+          - omax
+          - openx
+          - pubmatic
+          - rubicon
+          - smaato
+          - smartad
+          - stickyads
+          - tapit
+          - triplelift
+          - vungle
+        example:
+          mopub: true
+          rubicon: false
+          ...: ...
+      connection:
+        type: object
+        description: Type of connections where the campaign should run. Available ones are defined in the main dictionary as `connection_type`. Special value blacklist can be included.
+        enum:
+          - 3g: '3G/4G'
+          - wifi: Wifi
+          - blacklist: Is blacklist
+        example:
+          - 3g: true
+          - wifi: false
+          - blacklist: false
+      device_type:
+        type: object
+        description: Type of devices where the campaign should run. Available ones are defined in the main dictionary as device_type. Special value blacklist can be included.
+        enum:
+          - blacklist: "Is blacklist"
+          - connectedtv: "Smart TV"
+          - desktop: "Desktop"
+          - phone: "Smartphone"
+          - tablet: "Tablet"
+      device_markers:
+        type: object
+        description: List of devices makers (manufacturers). Available ones can be extracted performing a real time drilldown using the variable p:make
+        example:
+          - apple
+          - nokia
+          - ...
+      use_device_makers_as_blacklist:
+        type: boolean
+        description: Use device makers as blacklist instead of whitelist
+      device_models:
+        type: object
+        description: List of devices models. Available ones can be extracted performing real time drilldown using the variable p:model . Special value blacklist can be included.
+        example:
+          - iphone_6s
+          - samsung_s8
+      use_device_models_as_blacklist:
+        type: boolean
+        description: Use device models as blacklist instead of whitelist
+      user_agents:
+        type: object
+        description: List of user agent patterns to match
+        example:
+          - pattern1
+          - pattern2
+          - ...
+      use_user_agents_as_blacklist:
+        type: boolean
+        description: 	Use user agents as blacklist instead of whitelist
+      os:
+        type: object
+        description: Operating system where the campaign should run. Available ones are defined in the main dictionary as operating_systems
+        example:
+          android: true
+          blackberry: false
+      countries:
+        type: object
+        description: List of country codes (see dictionary)
+        <<: *CountriesList
+      regions:
+        type: object
+        description: List of regions (see dictionary)
+        example:
+          - 'ESP:CL'
+          - 'ESP:EX'
+      cities:
+        type: object
+        description: List of cities (see dictionary)
+        example:
+          - '1234321'
+          - '144221'
+          - '38892'
+      zipcodes:
+        type: object
+        description: List of zip codes
+        example:
+          - '16003'
+          - '24005'
+          - '28012'
+      operators:
+        type: object
+        description: List of operators. Available ones are defined in the main dictionary as operators
+        example:
+          - vodafone
+          - jazztel
+          - movistar
+      use_operators_as_blacklist:
+        type: boolean
+        description: Use operators as blacklist instead of whitelist
+      languages:
+        type: object
+        description: List of user languages. Available ones are defined in the main dictionary as languages.
+        example:
+          - es
+          - en
+      use_languages_as_blacklist:
+        type: boolean
+        description: Use languages as blacklist instead of whitelist
+      mosaic:
+        type: object
+        description: List of mosaic profiles (see dictionary)
+        example:
+          - 'esp:02:bla'
+      use_mosaic_as_blacklist:
+        type: boolean
+        description: Use mosaic profiles as blacklist instead of whitelist
+      dmp_audiences_and:
+        type: object
+        description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of all the audiences in this section in order to bid for it.
+        example:
+          - audA
+          - audB
+          - audC
+      dmp_audiences:
+        type: object
+        description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of at least one of the audiences in this section in order to bid for it.
+        example:
+          - audA
+          - audB
+          - audC
+      dmp_audiences_not:
+        type: object
+        description: DMP audiences or organization’s audiences that the campaign is targeted to. An user can not be part of any of the audiences in this section in order to bid for it.
+        example:
+          - audA
+          - audB
+          - audC
+      use_targeting_users_list_for_pretargeting:
+        type: boolean
+        description: Use dmp_audiences_and, dmp_audiences and dmp_audiences_not fields to reach for similar users
+      pretargeting_policy:
+        type: string
+        description: Pretargeting policy
+        enum:
+          - off
+          - very-restrictive
+          - normal
+          - less-restrictive
+        example: off
+      identifiers:
+        type: string
+        description: Identifier types allowed for the campaign. Available ones are defined in the main dictionary as identifiers.
+        enum:
+          - fake 
+          - gaid
+          - ifa
+          - web
+        example:
+          ifa: true
+          gaid: false
+          web: true
+      publisher_type:
+        type: object
+        description: Types of publisher allowed for the campaign. Available ones are defined in the main dictionary as publisher_type
+        enum:
+          - app
+          - web
+      age:
+        type: object
+        description: Age ranges allowed. Available ranges are defined in the main dictionary as age. Extra value blacklist supported
+        enum:
+          - blacklist
+          - gt13-lt17
+          - gt18-lt24
+          - gt25-lt34
+          - gt35-lt44
+          - gt45-lt54
+          - gt54
+          - lt13
+      gender:
+        type: object
+        description: Gender allowed (male or female). Extra value blacklist supported.
+        example:
+          male: true
+          female: false
+          blacklist: false
+      categories:
+        type: object
+        description: List of publisher categories. Available ones are defined in the main dictionary as publisher_categories
+        example:
+          - adult
+          - automobile
+          - games
+          - games:action
+      use_categories_as_blacklist:
+        type: object
+        description: Use categories as blacklist instead of whitelist.
+      interests:
+        type: object
+        description: List of publisher keywords or patterns to match. Publisher lists can be used, using “list:” prefix.
+        example:
+          - automobile
+      publishers:
+        type: object
+        description: List of publisher keywords or patterns to match. Publisher lists can be used, using “list:” prefix.
+        example:
+          - '*kitty*'
+          - 'list:<id>'
+          - '*talking*'
+      use_publishers_as_blacklist:
+        type: boolean
+        description: Use publishers list as blacklist instead of whitelist
+      publishers_rules:
+        type: object
+        description: List of publishers with their specific prices for microbidding.
+        example:
+          - price: 1.2
+            formula:
+              - key3
+          - price: 0.54
+            formula:
+              - key1
+              - key2
+      pages:
+        type: object
+        description: List of publishers domains or urls to match
+        example:
+          - angrybirds.com
+          - example.com
+      use_pages_as_blacklist:
+        type: boolean
+        description: Use publishers domain or urls as blacklist instead of whitelist	
+      geolist_acquisition:
+        type: object
+        description: Geolist identifier for targeting
+      use_geolist_conversion_as_targeting_blacklist:
+        type: boolean
+        description: Do not buy traffic inside the conversion geolist
+      manual_keywords_or:
+        type: object
+        description: List of keywords where at least one has to be present
+        example:
+          - key1
+          - key2
+      manual_keywords_and:
+        type: object
+        description: List of keywords where all of them have to be present
+        example:
+          - key3
+          - key4
+          - key5
+      manual_keywords_not:
+        type: object
+        description: List of keywords where none can be present
+        example:
+          - key6
+      manual_keywords_rule:
+        type: object
+        description: 'A custom keywords logic: AND of ORs'
+        example:
+          - - 'p:a:one'
+            - 'p:b:two'
+          - - 'p:c:three'
+          - - ...
+  Retargeting:
+    type: object
+    description: Retargeting attributes
+    properties:
+      retargeting_policy:
+        type: string
+        description: Retargeting policy (deprecated)
+      targeting_users_list:
+        type: string
+        description: 'Audience identifier (deprecated, please use: dmp_audiences in targeting section)'
+        example: jkj2302923ur0id2
+      use_targeting_users_list_as_blacklist:
+        type: boolean
+        description: 'Use users list as blacklist instead of whitelist (deprecated, please use: dmp_audiences_not in targeting section)'
+      keywords_to_add_on_click:
+        type: object
+        description: Keywords to be added to target users, on click
+        example:
+          - key1
+          - key2
+      keywords_to_add_on_conversion_1:
+        type: object
+        description: Keywords to be added to target users, on conversion 1	
+        example:
+          - key3
+          - key4
+          - key5
+      users_list_on_impressions:
+        type: string
+        description: Audience identifier
+        example: 28982y3y2jj
+      users_list_on_click:
+        type: string
+        description: Audience identifier
+      users_lists_on_events:
+        type: object
+        description: Audiences to be build on events
+        properties:
+          on_event_1:
+            type: string
+            description: Audience identifier
+            example: rk67wqcmjoucrlbc1jtbb0k42
+          on_event_2:
+            type: string
+            description: Audience identifier
+            example: uk1zif52rnmv05kk09ztpbkgw
+          on_event_3:
+            type: string
+            description: Audience identifier
+            example: 9wm5o2lru1yux8u6t6fxb8ebg
+          on_event_4:
+            type: string
+            description: Audience identifier
+            example: hkl70ur0yxglrn7ajeimjyomj
+          on_event_5:
+            type: string
+            description: Audience identifier
+            example: pbhu87gpi1pjmuirfwbhqnkoq
+      users_lists_on_video:
+        type: object
+        description: Audiences to be build on video events
+        properties:
+          on_video_start:
+            type: string
+            description: Audience identifier
+            example: 'm4uyv98hukevnfwiu1ubmqmea'
+          on_video_first_quartile:
+            type: string
+            description: Audience identifier
+            example: '3cxg69rwkhamhbasemrj4tpsy'
+          on_video_second_quartile:
+            type: string
+            description: Audience identifier
+            example: '117rvu6bkd0x0pysed49zx2fx'
+          on_video_midpoint:
+            type: string
+            description: Audience identifier
+            example: '37m0vow2zy0nkzrkiuxnay8g0'
+          on_video_third_quartile:
+            type: string
+            description: Audience identifier
+            example: 'qbywoqk5l73x7ka65u183irwq'
+          on_video_complete:
+            type: string
+            description: Audience identifier
+            example: 'gm9jzvhwc84bwloyzkl3ivd30'
+  Deals_and_pricing:
+    type: object
+    description: Deals and pricing attributes
+    properties:
+      deal_policy:
+        type: string
+        description: Deal policy
+        enum:
+          - off: Do not use deals
+          - plc: Pure placement
+          - per: Performance
+        example: 'plc'
+      deals:
+        type: object
+        description: List of deals to use
+        example:
+          - x123
+          - y234
+          - z345
+      cpm:
+        type: number
+        description: Initial CPM
+        example: 10
+      cpc:
+        type: number
+        description: Goal CPC
+        example: 0.15
+      cpa:
+        type: number
+        description: Goal CPA
+        example: 3.18
+      cpv:
+        type: number
+        description: Goal CPV
+        example: 10
+      event_number_for_cpa:
+        type: number
+        description: Event to use for CPA optimization	
+        example: 3
+      cpv_event:
+        type: string
+        description: Video event to use for optimization	
+        enum:
+          - videostart: 'Video start'
+          - videofirstquartile: 'Video 25% viewed'
+          - videomidpoint: 'Video 50% viewed'
+          - videothirdquartile: 'Video 75% viewed'
+          - videocomplete: 'Video completed'
+        example: videocomplete
+      exchange_breakdown:
+        type: boolean
+        description: Optimization per exchange instead of global
+      rules:
+        type: object
+        description: Pricing rules
+        properties:
+          formula:
+            type: object
+            description: List of keywords
+            example:
+              - key1
+              - key2
+              - key3
+          price:
+            type: number
+            description: Pricing factor to apply when formula is matched
+            example: 1.5
+  CampaignCreatives:
+    type: object
+    description: Creatives attributes
+    properties:
+      distribution:
+        type: string
+        description: Distribution policy for creatives
+        example: ctr
+      default_click_url:
+        type: string
+        description: Default click URL (if creatives or campaign creatives don’t override it)
+        example: 'http://blabla.com/bla/bla?bla=bla'
+      default_final_click_url:
+        type: string
+        description: Default final URL (if creatives or campaign creatives don’t override it)
+      default_impression_pixels:
+        type: object
+        description: Default impression pixels (if creatives or campaign creatives don’t override it)	
+        example:
+          - 'http://a.com'
+          - 'http://b.com'
+      campaign_creatives:
+        type: object
+        description: List of campaign creatie instances
+
+  Creative:
+    type: object
+    required:
+      - type
+      - name
+    properties:
+      type:
+        <<: *CREATIVE_TYPES
+      state:
+        <<: *CREATIVE_STATES
+      name:
+        description: A name for humans
+        type: string
+        example: Hello world
+      description:
+        description: A description
+        type: string
+      tags:
+        description: A JSON array of string labels
+        type: object
+        enum:
+          - image (common banner)
+          - video (custum video)
+          - audio (custom audio)
+          - external-video (external VAST)
+          - native (native ad)
+          - dynamic (images with dynamic content)
+          - tag (third party HTML+JS and MRAID tags)
+        example:
+          - one
+          - two
+          - ...
+      attributes:
+        description: A JSON array of numbers
+        type: object
+        enum:
+          - "1: Audio autoplay"
+          - "2: Audio user initiated"
+          - "3 Expandable (auto)"
+          - "4: Expandable (user initiated / click)"
+          - "5: In-banner video (user initiated))"
+          - "6: In-banner video (autoplay)"
+          - "7: In-banner video (user initiated)"
+          - "8: Pop-up (over, under, exit)"
+          - "9: Provocative or suggestive"
+          - "10: Shaky, flashing, extreme animations"
+          - "11: Surveys"
+          - "12: Text only"
+          - "13: Embedded game"
+          - "14: Window dialog/alert"
+          - "15: Has audio on/off control"
+          - "16: Ad can be skipped"
+        example:
+          - 1
+          - 6
+          - ...
+      impression_urls:
+        description: A JSON array of URLs
+        type: object
+        example:
+          - 'http://a.com'
+          - 'http://b.com'
+          - ...
+  Audience:
+    type: object
+    properties:
+      name:
+        description: A name for your audience
+        type: string
+        example: <audience_name>
+      description:
+        description: A description for your audience
+        type: string
+        example: <audience_description>
+      file:
+        description: A plain text file with one identifier per line
+        type: string
+  Deal:
+    type: object
+    properties:
+      key:
+        description: The deal code ID
+        type: string
+        example: ''
+      name:
+        description: A name for your deal
+        type: string
+        example: Test deal
+      description:
+        description: A description for your deal
+        type: string
+        example: This is a test
   Identifier:
     description: Unique identifier
     type: string
@@ -1200,6 +2149,2002 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/Report'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/availability/drilldown/{variable}':
+    get:
+      tags:
+        - analytics
+      summary: availability > drilldown/{variable}
+      description: Retrieves an estimation of the available bidoffers for all possible values of a variable, where :variable the variable.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: variable
+          in: path
+          required: true
+          <<: *DRILLDOWN_AVAILABILITY
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: rules
+          in: query
+          <<: *RULES
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              android: 13232411
+              iphone: 442212
+              ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/availability/summary':
+    get:
+      tags:
+        - analytics
+      summary: availability > summary
+      description: Retrieves an estimation of the amount of available bidoffers according with provided filters. This includes a total count and a timeline.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: rules
+          in: query
+          <<: *RULES
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              count: 11642975
+              timeline:
+                13:00: 454401
+                14:00: 704531
+                15:00: 704531
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/publishers/drilldown/{variable}':
+    get:
+      tags:
+        - analytics
+      summary: publishers > drilldown/{variable}
+      description: Computes the drilldown of a variable, according with some fixed filters, where :variable is the variable.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: variable
+          in: path
+          required: true
+          <<: *PUBLISHERS_DRILLDOWN
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: rules
+          in: query
+          <<: *RULES
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              blackberry: 34332
+              android: 7468823
+              ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/publishers':
+    get:
+      tags:
+        - analytics
+      summary: publishers > summary
+      description: Retrieves a list of available publishers, according with some optional filters
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: rules
+          in: query
+          <<: *RULES
+        - name: limit
+          description: The ammount of items to retrieve
+          in: query
+          type: number
+        - name: offset
+          description: An offset for the list
+          in: query
+          type: number
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - appsite: mobile.dailymotion.com
+                url: ''
+                keyword: mobiledailymotioncom
+                publisher: ''
+                offercount: 1923064
+              - offercount: 1909000
+                keyword: leading_global_video_publisher_
+                publishertype: site
+                site: Leading Global Video Publisher
+                appsite: Leading Global Video Publisher - MW
+                url: dailymotion.com
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/daystats':
+    get:
+      tags:
+        - analytics
+      summary: real time > summary
+      description: Computes a drilldown to extract all KPIs for possible values of a certain variable
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: kpis
+          in: query
+          <<: *KPI_DAYSTATS
+        - name: drilldown
+          in: query
+          <<: *DRILLDOWN_DAYSTATS
+        - name: campaign
+          description: Fix a campaign
+          in: query
+          type: string
+        - name: exchange
+          description: Fix and AdExchange
+          in: query
+          type: string
+        - name: keyword
+          description: Fix a value for a keyword prefix
+          in: query
+          type: string
+          
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - drillby: Campaign Name X
+                won: 786
+                impressions: 759
+                clicks: 34
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/analytics/daystats-report':
+    get:
+      tags:
+        - analytics
+      summary: real time > report
+      description: Downloads a drilldown report in CSV format. Check previous section for more details.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: from
+          in: query
+          description: Start date
+          <<: *DATE
+        - name: to
+          in: query
+          description: End date
+          <<: *DATE
+        - name: kpis
+          in: query
+          <<: *KPI_DAYSTATS
+        - name: drilldown
+          in: query
+          <<: *DRILLDOWN_DAYSTATS
+        - name: campaign
+          description: Fix a campaign
+          in: query
+          type: string
+        - name: exchange
+          description: Fix and AdExchange
+          in: query
+          type: string
+        - name: keyword
+          description: Fix a value for a keyword prefix
+          in: query
+          type: string
+          
+      produces:
+        - application/json
+        - text/csv
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - value: Campaign Name string A
+                won: 1234
+                impressions: 323
+                clicks: 45
+              - value: Campaign Name string B
+                won: 9234
+                impressions: 923
+                clicks: 69
+              - value: Campaign Name string C
+                won: 7634
+                impressions: 523
+                clicks: 85
+              - ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/creatives':
+    get:
+      tags:
+        - creatives
+      summary: /creatives
+      description: Retrieves all available creatives summary.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: state
+          in: query
+          <<: *CREATIVE_STATES
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                type: <creative_type>
+                state: pending-approval
+                name: <creative_name>
+                width: <width_in_pixels>
+                height: <height_in_pixels>
+                thumbnail_url: <image_url>
+                tags:
+                  - label1
+                  - label2
+                  - ...
+                created_at: <iso_date>
+                updated_at: <iso_date>
+              - ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+
+  '/api/creative':
+    post:
+      tags:
+        - creatives
+      summary: /creative
+      description: Adds a new creative in your organization
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: creative
+          in: body
+          description: New creative
+          required: true
+          schema:
+            $ref: '#/definitions/Creative'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/Creative'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/creative/{id}':
+    get:
+      tags:
+        - creatives
+      summary: creative/:id
+      description: Retrieves a single creative, where :id is a creative identifier.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the creative
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                name: <the_name>
+                description: <description>
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+    put:
+      tags:
+        - creatives
+      summary: /creative/:id
+      description: Perform updates over an existing creative. Where :id is the creative identifier
+        This offers exactly the same interface than [POST] /api/creative/:id route, shown above.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the creative
+          required: true
+          type: string
+        - name: creative
+          in: body
+          description: Creative
+          required: true
+          schema:
+            $ref: '#/definitions/Creative'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/Creative'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+    delete:
+      tags:
+        - creatives
+      summary: creative/:id
+      description: Mark a creative as deleted. It is equivalent to update a creative changing its state to deleted
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the creative
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success - The deleted creative
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/Creative'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+  
+  '/api/campaigns':
+    get:
+      tags:
+        - campaigns
+      summary: /campaigns
+      description: List current campaigns. For performance optimizations, only a summary (with some metadata) for each campaign is returned, not the whole campaign body.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: state
+          in: query
+          <<: *CAMPAIGN_STATES
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: X
+                name: Bla bla bla
+                state: active
+                created_at: '2015-10-02T03:22:00'
+                updated_at: '2015-10-03T11:05:33'
+              - id: Y
+                ...: ...
+              - ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+  '/api/campaign':
+    post:
+      tags:
+        - campaigns
+      summary: /campaign
+      description: Creates a new campaign. This method accepts both a full campaign body or a plain basic campaign attributes objects. For full campaign attributes description see Campaign Body section. The following description and example is designed for the simple way (plain one) of building campaigns.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: campaign
+          in: body
+          description: New campaign
+          required: true
+          schema:
+            $ref: '#/definitions/Campaign'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: 
+            type: object
+            example:
+              - id: ...
+                name: My campaign
+                created_at: '2015-10-02T03:22:00'
+                udated_at: '2015-10-03T11:23:21'
+                deals_and_pricing:
+                  - cpm: 10
+                ...: ....
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}':
+    get:
+      tags:
+        - campaigns
+      summary: campaign:/id
+      description: v
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: X
+                name: Bla bla bla
+                state: active
+                created_at: '2015-10-02T03:22:00'
+                updated_at: '2015-10-03T11:05:33'
+                schedule:
+                  ...: ...
+                targeting:
+                  ...: ...
+                deals_and_pricing:
+                  ...: ...
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+    put:
+      tags:
+        - campaigns
+      summary: /campaign/:id
+      description: Updates (partially) an existing campaign, where :id is a valid campaign identifier.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the Campaign
+          required: true
+          type: string
+        - name: campaign
+          in: body
+          description: Campaign
+          required: true
+          schema:
+            $ref: '#/definitions/Campaign'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            $ref: '#/definitions/Creative'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}/creatives':
+    get:
+      tags:
+        - campaigns
+      summary: /campaign/:id/creatives
+      description: Retrieves the list of all campaign creatives in a campaign. A "Campaign creative" is a model that links a creative to a campaign.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success. An array of campaign creatives.
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                state: <active|inactive>
+                campaign: <campaign_identifier>
+                creative:
+                  ...: ...
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+
+  '/api/campaign/{id}/creatives/available':
+    get:
+      tags:
+        - campaigns
+      summary: /campaign/:id/creatives/available
+      description: Retrieves a summary of all available creatives to be used from a specific campaign, where :id is a valid campaign identifier.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success. An array of creative summaries
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                type: <image|tag|...>
+                campaign: <creative_name>
+                thumbnail_url: <url>
+                width: <number>
+                height: <number>
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+
+  '/api/campaign/{id}/creative':
+    post:
+      tags:
+        - campaigns
+      summary: /campaign/:id/creative
+      description: Links a creative to a campaign, creating a CampaignCreative instance, where :id is an existing campaign identifier.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          type: string
+        - name: creative
+          in: body
+          description: A creative
+          required: true
+          schema:
+            type: object
+            required:
+              - creative_id
+            properties:
+              creative_id:
+                description: A creative identifier
+                type: string
+                example: '...'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: 
+            type: object
+            example:
+              - id: <identifier>
+                state: <active|inactive>
+                campaign: <campaign_identifier>
+                creative:
+                  ...: ...
+                ...: ....
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}/creative/{cid}':
+    get:
+      summary: /campaign/:id/creative/:cid
+      description: Retrieves a summary of all available creatives to be used from a specific campaign, where :id is a valid campaign identifier.
+      tags:
+        - campaigns
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          type: string
+        - name: cid
+          in: path
+          description: Campaign creative identifier
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              name: ...
+              type: ...
+              thumbnail_url: ...
+              creative:
+                id: ...
+                click_url: ...
+                ...: ...
+              ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+    put:
+      tags:
+        - campaigns
+      summary: /campaign/:id/creative/:cid
+      description: Updates a campaign creative document.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the Campaign
+          required: true
+          type: string
+        - name: cid
+          in: path
+          description: Id of the campaign creative
+          required: true
+          type: string
+        - name: campaign_creative
+          in: body
+          description: Campaign creative
+          required: true
+          schema:
+            type: object
+            properties:
+              state:
+                description: Creative state
+                type: string
+                enum:
+                  - active
+                  - inactive
+                example: active
+              keywords:
+                description: Segmentation keywords
+                type: object
+                example:
+                  - a
+                  - b
+                  - ...
+              click_url:
+                description: Click URL to override creative one
+                type: string
+                example: 'http:/blablabla.com'
+              impression_urls:
+                description: Impression pixels, to override creative one
+                type: object
+                example:
+                  - 'http://a.com...'
+                  - 'http://b.com...'
+              percentage:
+                description: Distribution percentage
+                type: number
+                example: 34
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              id: ...
+              state: ...
+              keywords:
+                - a
+                - b
+              ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+    delete:
+      tags:
+        - campaigns
+      summary: /campaign/:id/creative/:cid
+      description: Unlinks a creative from a campaign, removing a CampaignCreative instance. :id is an existing campaign identifier, and :cid is a campaign creative identifier inside the campaign (not the creative identifier).
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          type: string
+        - name: cid
+          in: path
+          description: Id of creative
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success - The deleted campaign creative
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                name: <active|inactive>
+                campaign: <campaign_identifier>
+                creative:
+                  ...: ...
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/campaign/{id}/strategies':
+    get:
+      tags:
+        - campaigns > strategies
+      summary: /campaign/:id/strategies
+      description: List all strategies linked to a parent campaign, where :id is an existing campaign identifier.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - parent_id: <parent_campaign_identifier>
+                id: <campaign_identifier>
+                name: <strategy_name> / Used as A/B tag
+                color: <hexadecimal_color>
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+  '/api/campaign/{id}/strategy':
+    post:
+      tags:
+        - campaigns > strategies
+      summary: /campaign/:id/strategy'
+      description: Creates a new strategy linked to a provided parent campaign, where :id is the campaign parent identifier. Takes in account that only first-level campaigns can be a parent, so another strategy cannot be used as parent campaign.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of your campaign
+          required: true
+          type: string
+        - name: strategy_id
+          in: body
+          description: New strategy
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+              - state
+            properties:
+              name:
+                description: A name for the strategy
+                type: string
+                example: bla bla
+              state:
+                <<: *CAMPAIGN_STATES
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: 
+            type: object
+            example:
+              - id: <campaign_identifier>
+                name: <strategy_name>
+                parent: 
+                  ...: ...
+                schedule:
+                  ...: ...
+                targeting:
+                  ...: ...
+                deals_and_pricing:
+                  ...: ...
+                ....: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/audiences':
+    get:
+      tags:
+        - audiences
+      summary: /audiences
+      description: Retrieves all available audiences in your organization.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                name: <audience_name>
+                description: <audience_description>
+                items: <items_count>
+                beacon: <beacon_url>
+                created_at: <iso_date>
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+  '/api/audience':
+    post:
+      tags:
+        - audiences
+      summary: /audience
+      description: Creates a new audience, uploading an identifiers file and processing it.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: audience
+          in: body
+          description: New audience
+          required: true
+          schema:
+            $ref: '#/definitions/Audience'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: Test audience
+                description: This is a test
+                file: 'https://s3.amazonaws.com/...'
+                items: 16902
+                created_at: '2016-05-18T15:32:29.361Z'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+  '/api/audience/{id}':
+    get:
+      tags:
+        - audiences
+      summary: /audience/:id
+      description: Retrieves a single audience, where :id is an audience identifier.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the audience
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: Test audience
+                description: This is a test
+                file: 'https://s3.amazonaws.com/...'
+                items: 16902
+                created_at: '2016-05-18T15:32:29.361Z'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+    put:
+      tags:
+        - audiences
+      summary: /audience/:id
+      description: Updates audience properties. Take in account that this endpoint does not let you replace previous identifiers. If a file is provided, then its content is added to the current audience.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the audience
+          required: true
+          type: string
+        - name: audience
+          in: body
+          description: Updated audience
+          required: true
+          schema:
+            $ref: '#/definitions/Audience'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: Test audience
+                description: This is a test
+                file: 'https://s3.amazonaws.com/...'
+                items: 16902
+                created_at: '2016-05-18T15:32:29.361Z'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/organization/{id}/deals':
+    get:
+      tags:
+        - deals
+      summary: /organization/:id/deals
+      description: Retrieves all existing deals in an organization, where :id is the organization identifier.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of your organization
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                key: <deal_code>
+                name: <deal_name>
+                description: <deal_description>
+                created_at: <iso_date>
+              - ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+
+  '/api/organization/{id}/deal':
+    post:
+      tags:
+        - deals
+      summary: /organization/:id/deal
+      description: Creates a new deal in provided organization, where :id is the organization identifier.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of your organization
+          required: true
+          type: string
+        - name: deal
+          in: body
+          description: New deal
+          required: true
+          schema:
+            $ref: '#/definitions/Deal'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                key: ""
+                name: Test audience
+                description: This is a test
+                created_at: '2016-05-18T15:32:29.361Z'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+  '/api/organization/{org_id}/deals/{id}':
+    put:
+      tags:
+        - deals
+      summary: /organization/:org_id/deals/:id
+      description: Updates deal properties, where :org_id is the organization identifier and :id is the deal identifier.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: org_id
+          in: path
+          description: Id of your organization
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the deal
+          required: true
+          type: string
+        - name: deal
+          in: body
+          description: Deal
+          required: true
+          schema:
+            $ref: '#/definitions/Deal'
+            example:
+              - name: 'Test deal 2'
+              - description: 'This is an updated test'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                key: ''
+                name: 'Test deal 2'
+                description: 'This is an updated test'
+                created_at: '2016-05-18T15:32:29.361Z'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+    delete:
+      tags:
+        - deals
+      summary: /organization/:org_id/deals/:id
+      description: Removes a deal from an organization, where :org_id is the organization identifier, and :id is the deal identifier to be removed.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: org_id
+          in: path
+          description: Id of your organization
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the deal
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success - The deleted deal
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: 'Test deal 2'
+                description: 'This is an updated test'
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/geolists':
+    get:
+      tags:
+        - geolists
+      summary: /geolists
+      description: Retrieves all available geolists in your organization.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                name: <geolist_name>
+                ...: ...
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+  '/api/geolist':
+    post:
+      tags:
+        - geolists
+      summary: /geolist
+      description: Creates a new geolist.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: geolist
+          in: body
+          description: New geolist
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                description: A name for your geolist
+                type: string
+                example: My first geolist
+              countries:
+                description: A list of ISO-3 country codes (see dictionary)
+                type: object
+                example:
+                  - ESP
+                  - FRA
+              regions:
+                description: A list of region codes (see dictionary)
+                type: object
+                example:
+                  - ...
+              cities:
+                description: A list of city codes (see dictionary)
+                type: object
+                example:
+                  - ...
+              areas:
+                description: A list of areas
+                type: object
+                example:
+                  - latitude: 40.43724322169748
+                    longitude: -3.7026052840879435
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: My first geolist
+                areas:
+                  - latitude: 40.43724322169748
+                    longitude: -3.7026052840879435
+                countries:
+                  - ESP
+                  - FRA
+                created_at: <iso_date>
+                precision: low
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+  '/api/geolists/{id}':
+    get:
+      tags:
+        - geolists
+      summary: /geolist/:id
+      description: Retrieves a geolist from your organization, where :id is a geolist identifier.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the geolist
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                name: <geolist_name>
+                areas:
+                  - latitude: 40.43724322169748
+                    longitude: -3.7026052840879435
+                    radius: 1000
+                    id: "my_area_one"
+                    name: "Area One"
+                    text: "This is a description of the Area One"
+                  - ...
+                countries:
+                  - ESP
+                  - ...
+                cities:
+                  - 3124132
+                  - ...
+                regions:
+                  - ...
+                created_at: <iso_date>
+                updated_at: <iso_date>
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+    put:
+      tags:
+        - geolists
+      summary: /geolist/:id
+      description: Updates geolist properties.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the geolist
+          required: true
+          type: string
+        - name: geolist
+          in: body
+          description: Update geolist
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                description: A name for your geolist
+                type: string
+                example: My updated geolist
+              countries:
+                description: A list of ISO-3 country codes (see dictionary)
+                type: object
+              regions:
+                description: A list of region codes (see dictionary)
+                type: object
+              cities:
+                description: A list of city codes (see dictionary)
+                type: object
+              areas:
+                description: A list of areas
+                type: object
+                example:
+                  - latitude: 40.43724322169748
+                    longitude: -3.7026052840879435
+                  - latitude: 41.0556693
+                    longitude: -2.1254482
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: My first geolist
+                areas:
+                  - latitude: 40.43724322169748
+                    longitude: -3.7026052840879435
+                  - latitude: 41.0556693
+                    longitude: -2.1254482
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/publisher/lists':
+    get:
+      tags:
+        - publisher lists
+      summary: /publishers/lists
+      description: Retrieves all available publisher lists in your organization.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                name: <publisher_list_name>
+                description: <publisher_list_description>
+                created_at: <iso_date>
+                updated_at: <iso_date>
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+
+  '/api/publisher/list/':
+    post:
+      tags:
+        - publisher lists
+      summary: /publisher/list
+      description: Creates a new publisher list.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: geolist
+          in: body
+          description: New publisher list
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                description: A name for your list
+                type: string
+                example: Example
+              description:
+                description: A description for your list
+                type: string
+                example: My first item
+              publishers:
+                description: A list of publishers
+                type: object
+                example:
+                  - one
+                  - two
+                  - three
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: Example
+                description: My first item
+                publishers:
+                  - one
+                  - two
+                  - three
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/publishers/list/{id}':
+    get:
+      tags:
+        - publisher lists
+      summary: /publishers/list/:id
+      description: Retrieves a publisher list from your organization.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the publisher list
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - id: <identifier>
+                name: <publisher_list_name>
+                description: <publisher_list_description>
+                created_at: <iso_date>
+                updated_at: <iso_date>
+              - ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+    put:
+      tags:
+        - publisher lists
+      summary: /publishers/list/:id
+      description: Updates publisher list properties.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of the publisher list
+          required: true
+          type: string
+        - name: geolist
+          in: body
+          description: Update publisher list
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                description: A name for your list
+                type: string
+                example: New Example
+              description:
+                description: A description for your list
+                type: string
+              publishers:
+                description: A list of publishers
+                type: object
+                example:
+                  - one
+                  - two
+                  - three
+                  - four
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: ...
+                name: New Example
+                description: My first item
+                publishers:
+                  - one
+                  - two
+                  - three
+                  - four
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/organization/{id}/betatesters':
+    get:
+      tags:
+        - betatesters
+      summary: /organization/:id/betatesters
+      description: Retrieves all existing betatesters in an organization, where :id is the organization identifier.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of your organization
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - attr1: 'x'
+                attr2: 'y'
+                ...: ...
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+    post:
+      tags:
+        - betatesters
+      summary: /organization/{id}/betatesters
+      description: Creates a new betatester in the provided organization, where :id is the organization identifier.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Id of your organization
+          required: true
+          type: string
+        - name: betatester
+          in: body
+          description: New betatester
+          required: true
+          schema:
+            type: object
+            required:
+              - id
+              - name
+            properties:
+              id:
+                description: The betatester native identifier or IP
+                type: string
+                example: '34.123.89.101'
+              name:
+                description: A descriptive name for your betatester
+                type: string
+                example: My office IP
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: '34.123.89.101'
+                name: My office IP
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+    delete:
+      tags:
+        - betatesters
+      summary: /organization/{id}/betatesters
+      description: Removes a deal from an organization, where :org_id is the organization identifier, and :id is the deal identifier to be removed.
+      consumes:
+        - application/json
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: The betatester native identifier or IP
+          required: true
+          type: string
+        - name: betatester
+          in: body
+          description: Parameters of the betatester
+          required: true
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                description: The betatester native identifier or IP
+                type: string
+                example: '34.123.89.101'
+      responses:
+        '200':
+          description: Success - The deleted deal
+          schema: # response schema can be specified for each response
+            type: object
+            example:
+              - id: '34.123.89.101'
+                name: My office IP
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '429':
+          $ref: '#/responses/429'
+
+  '/api/session-data':
+    get:
+      tags:
+        - session-data
+      summary: /session-data
+      description: >
+        Retrieves all session data available files in your organization for a given date.
+        
+        If no date is specified, then the current day will be used. If from, to and date are specified, the date parameter will be ignored and from and to will be taken into account.
+      parameters:
+        - name: authorization
+          in: header
+          description: Authorization token
+          required: true
+          type: string
+        - name: date
+          in: query
+          type: date
+          description: Date to download
+        - name: from
+          in: query
+          type: date
+          description: Date to specify the start of a date range to download. Needs the parameter to also in the request
+        - name: to
+          in: query
+          type: date
+          description: Date to specify the end of a date range to download . Needs the parameter from also in the request
+      produces:
+        - application/json
+      security:
+        - auth_token: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            example:
+              - A zip file with all the compressed json files for the specified date
         '400':
           $ref: '#/responses/400'
         '401':
