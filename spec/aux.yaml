@@ -1,0 +1,78 @@
+ # CreativeNative:
+    #   allOf:
+    #     - $ref: '#/components/schemas/Creative'
+    #     - type: object
+    #       properties:
+    #         native_settings:
+    #           $ref: '#/components/schemas/CreativeNativeSettings'
+    # CreativeNativeSettings:
+    #   type: object
+    #   properties:
+    #     title:
+    #       type: string
+    #       example: 'Hello World'
+    #       description: 'Ad title'
+    #       required: true
+    #     text:
+    #       type: string
+    #       example: 'I am a text'
+    #       description: 'Ad text'
+    #       required: true
+    #     action:
+    #       type: string
+    #       example: 'Sign up'
+    #       description: 'Action text'
+    #       required: true
+    #     rating:
+    #       type: number
+    #       example: 3
+    #       description: 'The app store rating 0-5'
+    #     icon300x300:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #     image1200x627:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 1200x627
+    #     image580x480:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 580x480
+    #     image640x480:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 640x480
+    #     image356x200:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 356x200
+    #     image240x200:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 240x200
+    #     image180x60:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 180x60
+    #     image138x115:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 138x115
+    #     image90x75:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 90x75
+    #     image72x60:
+    #       required: true
+    #       type: string
+    #       format: binary
+    #       description: An attached image file for 72x60

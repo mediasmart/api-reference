@@ -2669,7 +2669,6 @@ paths:
           $ref: '#/responses/401'
         '429':
           $ref: '#/responses/429'
-  
   '/api/campaigns':
     get:
       tags:
