@@ -196,6 +196,19 @@ components:
           - imported
           - pending-approval
           - rejected
+  # CAMPAIGNS PARAMS =====================================================================
+    CampaignState:
+      name: state
+      in: query
+      description: Attribute states of the campaigns
+      schema:
+        type: string
+        enum:
+          - active
+          - inactive
+          - deleted
+          - preview
+
   schemas:
     Session:
       allOf:
@@ -274,6 +287,7 @@ components:
     Date:
       type: string
       format: 'YYYY-MM-DD'
+
   # DICTIONARY SCHEMAS ===================================================================
     Dictionary:
       type: object
@@ -1907,6 +1921,145 @@ paths:
         '403':
           $ref: '#/components/responses/403'
 # CAMPAIGNS PATHS ========================================================================
+  /api/campaigns:
+      get:
+        tags:
+          - Campaigns
+        summary: /campaigns
+        description: List current campaigns. For performance optimizations, only a summary (with some metadata) for each campaign is returned, not the whole campaign body.
+        parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/CampaignState'
+        responses:
+          '200':
+            description: Success
+            content:
+              application/json:
+                schema:
+                  type: object
+                  example:
+                    - id: <identifier>
+                      name: <campaign_name>
+                      state: active
+                      created_at: <iso_date>
+                      updated_at: <iso_date>
+                    - ...: ...
+          '400':
+            $ref: '#/components/responses/400'
+          '401':
+            $ref: '#/components/responses/401'
+          '403':
+            $ref: '#/components/responses/403'
+
+  /api/campaign/{id}:
+    get:
+      tags:
+        - Campaigns
+      summary: campaign/:id
+      description: Recovers a single campaign, where :id is an existing campaign identifier.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - id: <identifier>
+                    name: <the_name>
+                    state: active
+                    created_at: <iso_date>
+                    updated_at: <iso_date>
+                    schedule:
+                      ...: ...
+                    targeting:
+                      ...: ...
+                    deals_and_pricing:
+                      ...: ...
+                    ...: ...
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+  /api/campaign/{id}/creatives:
+    get:
+      tags:
+        - Campaigns
+      summary: campaign/:id/creatives
+      description: Retrieves the list of all campaign creatives in a campaign. A "Campaign creative" is a model that links a creative to a campaign.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success. An array of campaign creatives.
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - id: <identifier>
+                    state: active
+                    campaign: <campaign_identifier>
+                    creative:
+                      ...: ...
+                    ...: ...
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+
+  /api/campaign/{id}/creatives/available:
+    get:
+      tags:
+        - Campaigns
+      summary: campaign/:id/creatives/available
+      description: Retrieves a summary of all available creatives to be used from a specific campaign, where :id is a valid campaign identifier.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success. An array of creative summaries.
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - id: <identifier>
+                    type: <image|tag|...>
+                    thumbnail_url: <url>
+                    width: <number>
+                    height: <number>
+                    ...: ...
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
 
 # STRATEGIES PATHS =======================================================================
 
