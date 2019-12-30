@@ -84,6 +84,16 @@ components:
               message:
                 type: string
                 example: Invalid or expired token provided.
+    404:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Not found.
     429:
       description: Quota exceeded
       content:
@@ -703,11 +713,211 @@ components:
         items:
           type: number
           description: number of items in the audience.
+    LocationAudienceList:
+      type: object
+      properties:
+        areas:
+          type: number
+          description: number of areas.
+        cities:
+          type: array
+          items: 
+            type: string
+          description: array of cities.
+        regions:
+          type: array
+          description: array of regions.
+        campaigns:
+          type: array
+          description: array of campaigns.
+        countries:
+          type: array
+          items: 
+            type: string
+          description: array of countries.
+        created_at:
+          type: string
+          description: audience location creation date.
+        id:
+          type: string
+          description: audience location identifier.
+        items:
+          type: number
+          description: number of items in the location audience.
+        name:
+          type: string
+          description: audience location name.
+        timing:
+         type: array
+         items:
+          type: object
+         description: time ranges.
+        updated_at:
+          type: string
+          description: audience location update date.
+          
+    LocationAudience:
+      type: object
+      properties:
+        areas:
+          type: array
+          description: The areas where the audiences is based (radius in metres).
+          items: 
+            type: object
+        cities:
+          type: array
+          description: The cities in your audience.
+          items: 
+            type: string
+        countries:
+          type: array
+          description: The countries in your audience.
+          items: 
+            type: string
+        id:
+          type: string
+          description: identifier audience.
+        name:
+          type: string
+          description: audience location name.  
+        precision: 
+          type: string
+          description: The precision of the location, low when using IP and high when using GPS.
+        regions:
+          type: array
+          description: The regions in your audience. 
+          items: 
+            type: string
+        timing:
+         type: array
+         description: Time ranges when the audience should be built (similar to campaign schedule one).
+         items: 
+            type: object
+        description: 
+          type: string
+          description: audience location description.
+        created_at:
+          type: string
+          description: audience location creation date.  
+        campaigns:
+          type: array
+          description: The campaigns in your audience.
+     
+    Deal:
+      type: object
+      properties:
+        id:
+          type: string
+          description: identifier.
+        key:
+          type: string
+          description: deal code.
+        name:
+          type: string
+          description: deal name.  
+        description: 
+          type: string
+          description: deal description.  
+        created_at:
+          type: string
+          description: deal creation date.  
+    
+    GeolistList:
+      type: object
+      properties:
+        id:
+          type: string
+          description: identifier.
+        name:
+          type: string
+          description: geolist name. 
+    
+    Geolist:
+      type: object
+      properties:
+        id:
+          type: string
+          description: identifier.
+        name:
+          type: string
+          description: geolist name. 
+        areas:
+         type: array
+         items: 
+            $ref: '#/components/schemas/AreaGeolist'   
+        countries:
+          type: array
+          items: 
+            type: string
+        cities:
+          type: array
+          items: 
+            type: string
+        regions:
+          type: array
+          description: The regions in your audience. 
+        created_at:
+          type: string
+          description: creation date. 
+        updated_at:
+          type: string
+          description: update date. 
+        precision:
+          type: string
+          description: A precision (low vs high). 
+    
+    AreaGeolist:
+      type: object
+      description: Each area of a geolist is an object with the following attributes. 
+      required: 
+        - latitude
+        - longitude
+        - radius
+      properties:
+        latitude: 
+          type: number
+          description: The latitude of the center.
+        longitude: 
+          type: number
+          description: The longitude of the center.
+        radius: 
+          type: number
+          description: The radius of the area.
+        id:
+          type: string
+          description: area identifier.
+        name:
+          type: string
+          description: area name. 
+        text:
+          type: string
+          description: area description. 
+    
+    PublisherList:
+      type: object
+      properties:
+        id:
+          type: string
+          description: publisher list identifier.
+        name:
+          type: string
+          description: publisher list name. 
+        description:
+          type: string
+          description: publisher list description.       
+        created_at:
+          type: string
+          description: publisher list creation date. 
+        updated_at:
+          type: string
+          description: publisher list update date.
+  
+                
 paths:
 # PUBLIC PATHS ===========================================================================
   /status:
     get:
-      operationId: status
+      operationId: statusº
       tags:
         - Public
       summary: status
@@ -2063,6 +2273,98 @@ paths:
 
 # STRATEGIES PATHS =======================================================================
 
+  /api/campaign/{id}/strategies:
+    get: 
+      tags:
+        - Campaigns > Strategies
+      summary: /campaign/:id/strategies
+      description: List all strategies linked to a parent campaign. where :id is an existing campaign identifier.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success. An array of strategy summaries.
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - id: <campaign_identifier>
+                    parent_id: <parent_campaign_identifier>
+                    name: <strategy_name> / Used as A/B tag
+                    color: <hexadecimal_color>
+                    ...: ...
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+
+  /api/campaign/{id}/strategy:
+    post:
+      tags:
+        - Campaigns > Strategies
+      summary: /campaign/:id/strategy
+      description: Creates a new strategy linked to a provided parent campaign, where :id is the campaign parent identifier. Takes in account that only first-level campaigns can be a parent, so another strategy cannot be used as parent campaign.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the campaign
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Strategy attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - state
+              properties:
+                name:
+                  type: string
+                  description: A name for the strategy
+                state:
+                  type: string
+                  description: A campaign state for the strategy
+                cost_percentage:
+                  type: number
+                  description: A cost % for this strategy inside the campaign
+      responses:
+        '201':
+          description: Success. The created campaign (strategy).
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: <campaign_identifier>
+                  name: <strategy_name>
+                  parent: {...}
+                  schedule: {...}
+                  targeting: {...}
+                  deals_and_pricing: {...}
+                  ...: ...
+
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+
+
 # AUDIENCES PATHS ========================================================================
   /api/audiences:
     get:
@@ -2130,8 +2432,6 @@ paths:
                   description: Organization ID allowed to use the audience (provide it more than one time to support many organizations)[DATA PARTNERS ONLY].
                   items:
                     type: string
-
-
       responses:
         '200':
           description: Successful creation
@@ -2145,3 +2445,681 @@ paths:
           $ref: '#/components/responses/401'
         '429':
           $ref: '#/components/responses/429'
+
+# LOCATION BASED AUDIENCES PATHS ========================================================================
+  /api/location_audiences:
+    get:
+      tags:
+        - Location Based Audiences
+      summary: /location_audiences
+      description: Retrieves all available location based audiences in your organization.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocationAudienceList'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+    
+  /api/location_audience:
+    post:
+      tags:
+        - Location Based Audiences
+      summary: /location_audience
+      description: Creates a new location based audience.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      requestBody:
+        description: Location audience attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - countries
+              properties:
+                name:
+                  type: string
+                  description: A name for your audience
+                description:
+                  type: string
+                  description: A description for your audience
+                countries:
+                 type: array
+                 items: 
+                  type: string
+                 description: The countries in your audience. It is an array of country codes, this codes have to be retrieved from the dictionary service explained in this documentation.
+                regions:
+                 type: array
+                 description: The regions in your audience. It is an array of region codes, this codes have to be retrieved from the dictionary service explained in this documentation.
+                cities:
+                 type: array
+                 items: 
+                  type: string
+                 description: The cities in your audience. It is an array of city codes, this codes have to be retrieved from the dictionary service explained in this documentation.
+                precision:
+                  type: string
+                  description: The precision of the location, low when using IP and high when using GPS.
+                areas:
+                 type: array
+                 items: 
+                    type: object
+                 description: The areas where the audiences is based (radius in metres).
+                timing:
+                 type: array
+                 items: 
+                    type: object
+                 description: Time ranges when the audience should be built (similar to campaign schedule one).
+              example: 
+                  ...: ...
+                  areas: {
+                    longitude: -4.155308,
+                    latitude: 40.6417999,
+                    radius: 100,
+                  } 
+                  timing: [
+                    {
+                      monday: true, 
+                      tuesday: true, 
+                      started_time_at: "17:00", 
+                      finished_time_at: "23:00",
+                    },
+                    ...
+                  ]
+      responses:
+        '201':
+          description: Success. The created campaign (strategy).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationAudience'
+
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+          
+  /api/location_audience/{id}:
+    put:
+      tags:
+        - Location Based Audiences
+      summary: location_audience/:id
+      description: Updates location based audience properties.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the location audience
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Location audience attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - countries
+              properties:
+                name:
+                  type: string
+                  description: A name for your audience
+                description:
+                  type: string
+                  description: A description for your audience
+                countries:
+                  type: array
+                  items: 
+                      type: string
+                  description: The countries in your audience. It is an array of country codes, this codes have to be retrieved from the dictionary service explained in this documentation.
+                regions:
+                 type: array
+                 description: The regions in your audience. It is an array of region codes, this codes have to be retrieved from the dictionary service explained in this documentation.
+                cities:
+                 type: array
+                 items: 
+                    type: string
+                 description: The cities in your audience. It is an array of city codes, this codes have to be retrieved from the dictionary service explained in this documentation.
+                precision:
+                  type: string
+                  description: The precision of the location, low when using IP and high when using GPS.
+                areas:
+                 type: array
+                 items: 
+                  type: object
+                 description: The areas where the audiences is based (radius in metres).
+                timing:
+                 type: array
+                 items: 
+                    type: object
+                 description: Time ranges when the audience should be built (similar to campaign schedule one).
+              example: 
+                  ...: ...
+                  areas: {
+                    longitude: -4.155308,
+                    latitude: 40.6417999,
+                    radius: 100,
+                  } 
+                  timing: [
+                    {
+                      monday: true, 
+                      tuesday: true, 
+                      started_time_at: "17:00", 
+                      finished_time_at: "23:00",
+                    },
+                    ...
+                  ]
+      responses:
+        '200':
+          description: Success. The updated audience model.
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/LocationAudience'
+
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+    get:
+      tags:
+        - Location Based Audiences
+      summary: /location_audience/:id
+      description: Fetches a location based audience.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the location audience
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success. The location based audience model.
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/LocationAudience'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+                  
+  /api/organization/{id}/deals:                
+    get:
+      tags:
+        - Deals
+      summary: /organization/:id/deals
+      description: Retrieves all existing deals in an organization, where :id is the organization identifier.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the organization
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deal'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+          
+  /api/organization/{id}/deal:
+    post:
+      tags:
+        - Deals
+      summary: /organization/:id/deal
+      description: Creates a new deal in provided organization, where :id is the organization identifier.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the organization
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Deals attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - key
+                - name
+              properties:
+                key:
+                  type: string
+                  description: The deal code ID
+                name:
+                  type: string
+                  description: A name for your deal
+                description:
+                  type: string
+                  description: A description for your deal
+      responses:
+        '201':
+          description: Success. The created deal model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deal'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+  
+  /api/organization/{id}/deals/{id}:
+    put:
+      tags:
+        - Deals
+      summary: /organization/:id/deals/:id
+      description: Updates deal properties, where :org_id is the organization identifier and :id is the deal identifier.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: org_id
+          in: path
+          description: Id of the organization
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: Id of the deal
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Deals attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  description: The deal code ID
+                name:
+                  type: string
+                  description: A name for your deal
+                description:
+                  type: string
+                  description: A description for your deal
+      responses:
+        '200':
+          description: Success. The updated deal model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deal'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+    delete:
+      tags:
+        - Deals
+      summary: /organization/:id/deals/:id
+      description: Removes a deal from an organization, where :org_id is the organization identifier, and :id is the deal identifier to be removed.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: org_id
+          in: path
+          description: Id of the organization
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: Id of the deal
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success. The removed deal model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deal'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+    
+  /api/geolists:                
+    get:
+      tags:
+        - Geolists
+      summary: /geolists
+      description: Retrieves all available geolists in your organization.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        '200':
+          description: Success. List of objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeolistList'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+
+  /api/geolist/{id}:            
+    get:
+      tags:
+        - Geolists
+      summary: /geolist/:id
+      description: Retrieves a geolist from your organization.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the geolist
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success. Plain object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geolist'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+    put:
+      tags:
+        - Geolists
+      summary: /geolist/:id
+      description: Updates geolist properties.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the geolist
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Geolist attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: A name for your deal
+                countries:
+                  type: array
+                  description: A list of ISO-3 country codes (see dictionary)
+                  items: 
+                    type: string
+                regions:
+                  type: array
+                  description: A list of region codes (see dictionary)
+                  items: 
+                    type: string
+                cities:
+                  type: array
+                  description: A list of city codes (see dictionary)
+                  items: 
+                    type: string
+                areas:
+                  type: array
+                  description: A list of areas
+                  items: 
+                    type: object
+                precision:
+                  type: string
+                  description: A precision (low vs high)
+      responses:
+        '200':
+          description: Success. The updated list model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geolist'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'  
+  
+  /api/geolist:          
+    post:
+      tags:
+        - Geolists
+      summary: /geolist
+      description: Creates a new geolist.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      requestBody:
+        description: Geolist attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: A name for your deal
+                countries:
+                  type: array
+                  description: A list of ISO-3 country codes (see dictionary)
+                  items: 
+                    type: string
+                regions:
+                  type: array
+                  description: A list of region codes (see dictionary)
+                  items: 
+                    type: string
+                cities:
+                  type: array
+                  description: A list of city codes (see dictionary)
+                  items: 
+                    type: string
+                areas:
+                  type: array
+                  description: A list of areas
+                  items: 
+                    type: object
+                precision:
+                  type: string
+                  description: A precision (low vs high)
+      responses:
+        '201':
+          description: Success. The created geolist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geolist'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+  
+  /api/publishers/lists:                
+    get:
+      tags:
+        - Publisher Lists
+      summary: /publishers/lists
+      description: Retrieves all available publisher lists in your organization.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        '200':
+          description: Success. List of objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublisherList'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+          
+  /api/publishers/list/{id}:            
+    get:
+      tags:
+        - Publisher Lists
+      summary: /publishers/list/:id
+      description: Retrieves a publisher list from your organization.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the publisher list
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success. Plain object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublisherList'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+    
+    put:
+      tags:
+        - Publisher Lists
+      summary: /publishers/list/:id
+      description: Updates publishers list properties.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: id
+          in: path
+          description: Id of the publisher list
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Publisher list attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: A name for your list
+                description:
+                  type: string
+                  description: A description for your list  
+                publishers:
+                  type: array
+                  description: A list of publishers
+                  items: 
+                    type: string
+      responses:
+        '200':
+          description: Success. The updated list model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublisherList'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'  
+          
+  /api/publishers/list:          
+    post:
+      tags:
+        - Publisher Lists
+      summary: /publishers/list
+      description: Creates a new publisher list.
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      requestBody:
+        description: Publisher list attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - publishers
+              properties:
+                name:
+                  type: string
+                  description: A name for your publisher list
+                description:
+                  type: string
+                  description: A description for your list  
+                publishers:
+                  type: array
+                  description: A list of publishers
+                  items: 
+                    type: string  
+      responses:
+        '201':
+          description: Success. The created geolist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Geolist'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'    
+        
+          
+          
+    
