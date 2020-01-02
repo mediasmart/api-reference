@@ -911,7 +911,445 @@ components:
         updated_at:
           type: string
           description: publisher list update date.
-  
+          
+    Campaign: 
+      type: object
+      description : This schema describes the Campaign model and all its sections and attributes. A campaign is a set of first level attributes and some groups with second-level ones inside. 
+      properties: 
+        id: 
+          type: string
+          description: The campaign identifier.
+          example: "xxxx"
+        name: 
+          type: string
+          description: The campaign name.
+          example: "I am a name"
+        description: 
+          type: string
+          description: The campaign description.
+          example: "I am a description"
+        state: 
+          type: string
+          description: The campaign state.
+          example: "inative"
+        color: 
+          type: string
+          description:  An hexadecimal color.
+          example: "#4CAF50"
+        goal:
+            $ref: '#/components/schemas/GoalSectionCampaign'
+        cost_percentage: 
+          type: number
+          description: A distribution value for parent+strategies.
+          example: 34
+        iab_categories: 
+          type: array
+          description: AIAB categories to define campaign content.
+          items:
+            type: string
+            example: 'IAB2'
+        tags: 
+          type: array
+          description: AIABLabels for searching purpose.
+          items:
+            type: string
+            example: 'video'  
+        advertiser_name: 
+          type: string
+          description:  Advertiser name.
+          example: "Coca-Cola" 
+        event_id: 
+          type: string
+          description:  An existing tracking event name.
+          example: "hello"
+        tracking_tool: 
+          type: string
+          description:  A tracking tool to use.
+          example: "mediasmart"
+        attribution_window_on_click: 
+          type: string
+          description:  Number of days to attribute clicks.
+          example: 2
+        attribution_window_on_impression: 
+          type: string
+          description:  Number of days to attribute impressions.
+          example: 2
+        conversion_one_is_required: 
+          type: boolean
+          description:  Events 2-5 discarded unless event 1 .
+          example: true 
+        supports_many_conversions_one: 
+          type: boolean
+          description:  Accept more than one event 1 .
+          example: true 
+        supports_many_conversions_other: 
+          type: boolean
+          description:  Accept more than one event 2-5 .
+          example: true 
+        viewability_tracking_tool: 
+          type: string
+          description:  A viewability tracking tool to use.
+          example: 'adledge' 
+        adledge_terms_and_conditions: 
+          type: boolean
+          description:  A boolean to accept adledge terms and conditions. Needed when 'viewability_tracking_tool' is adledge.
+          example: true   
+        tvty_state: 
+          type: string
+          description:  Status on TVTY platform. 
+        schedule:
+            $ref: '#/components/schemas/ScheduleSectionCampaign'
+        targeting:
+            $ref: '#/components/schemas/TargetingSectionCampaign'
+        retargeting:
+            $ref: '#/components/schemas/RetargetingSectionCampaign'
+        deals_and_pricing:
+            $ref: '#/components/schemas/DealsAndPricingSectionCampaign'
+        creatives:
+            $ref: '#/components/schemas/CreativesSectionCampaign'
+        parent:
+          type: object
+          description: Parent campaign.
+        strategies:
+          type: array
+          description: Strategy summaries list. These are created using a different route, please refer to Campaign Strategies routes.
+          items:
+            type: object
+        organization:
+          type: object
+          description: Organization of the campaign.
+        created_at:
+          type: string
+          description: 	ISO date of creation.
+          example: '2016-04-05T22:00.123Z'
+        updated_at:
+          type: string
+          description: ISO date of last update.
+          example: '2016-04-05T22:00.123Z'
+    
+    GoalSectionCampaign:
+      type: object
+      description: The goal of the campaign.
+      properties: 
+        kpi: 
+          type: string
+          description:  Key Performance Indicator.
+          example: "cpc"
+        value: 
+          type: number
+          description: Value of the kpi.
+          example: 0.2
+      
+    ScheduleSectionCampaign: 
+      type: object
+      description: Scheduling attributes. Global limits are only used for reporting. They are not real limits and your campaign will not stop when reaching them.
+      properties: 
+        max_global_cost: 
+          type: number
+          description: Max cost for the whole campaign life.
+          example: 2500
+        max_global_impressions: 
+          type: number
+          description: Max impressions for the whole campaign life.  
+          example: 470000
+        max_global_clicks: 
+          type: number
+          description: Max clicks for the whole campaign life.
+          example: 1500
+        max_daily_cost: 
+          type: number
+          description: Max cost for every day.
+          example: 1000
+        max_daily_impressions: 
+          type: number
+          description: Max impressions for every day.
+          example: 10000
+        max_daily_clicks: 
+          type: number
+          description: Max clicks for every day.
+          example: 470000
+        max_impressions_user: 
+          type: number
+          description: Amount of impressions for the same user.
+          example: 50
+        max_impressions_user_day: 
+          type: number
+          description: Amount of impressions for the same user in a day.
+          example: 50
+        max_impressions_user_hour: 
+          type: number
+          description: Amount of impressions for the same user in a hour.
+          example: 50
+        one_click_per_user: 
+          type: boolean
+          description: No more ads should be shown to a user that has clicked.
+          example: true
+        uniform_distribution: 
+          type: boolean
+          description: Distribute the campaign during the day
+          example: true
+        started_at: 
+          type: string
+          description: When the campaign should start
+          example: "2016-05-10"
+        finished_at: 
+          type: string
+          description: When the campaign should finish
+          example: "2016-06-10"
+        timing: 
+          type: array
+          description: Time ranges when the campaign should run
+          items: 
+            type: object
+            properties:
+              started_time_at: 
+                type: string
+                description: Start hour of this range
+                example: "03:00"
+              finished_time_at: 
+                type: string
+                description: End time of this range
+                example: "17:30"  
+              monday: 
+                type: boolean
+                description: If this range should run on monday
+                example: true  
+              tuesday: 
+                type: boolean
+                description: If this range should run on tuesday
+                example: true  
+              wednesday: 
+                type: boolean
+                description: If this range should run on wednesday
+                example: true  
+              thursday: 
+                type: boolean
+                description: If this range should run on thursday
+                example: true  
+              friday: 
+                type: boolean
+                description: If this range should run on friday
+                example: true  
+              saturday: 
+                type: boolean
+                description: If this range should run on saturday
+                example: true  
+              sunday: 
+                type: boolean
+                description: If this range should run on sunday
+                example: true  
+              
+    TargetingSectionCampaign:
+      type: object
+      description: Targeting attributes
+      properties:
+        exchanges:
+          description: Ad Exchanges where the campaign should run. Available AdExchanges are defined in the main dictionary as exchanges.
+          oneOf:
+            - type: object
+              example: {
+                mopub: true, 
+                rubicon: false,
+                ...
+              }
+            - type: integer
+              nullable: true
+        connection:
+          description: Type of connections where the campaign should run. Available ones are defined in the main dictionary as connection_type. Special value 'blacklist' can be included.
+          oneOf:
+            - type: object
+              example: {
+                cellular_3g: true, 
+                cellular_4g: false,
+                wifi: false,
+                blacklist: false
+                ...
+              }
+            - type: integer
+              nullable: true
+        device_type:
+          description: Type of devices where the campaign should run. Available ones are defined in the main dictionary as device_type. Special value 'blacklist' can be included.
+          oneOf:
+            - type: object
+            - type: integer
+              nullable: true
+        
+    RetargetingSectionCampaign:
+      type: object
+      description: Retargeting attributes
+      properties:
+        retargeting_policy: 
+          type: string
+          description: Retargeting policy (deprecated)
+          example: 'off'
+        targeting_users_list: 
+          type: string
+          description: Audience identifier (deprecated, please use "dmp_audiences" in "targetingSectionCampaign" schema).
+          example: 'jkj2302923ur0id2'
+        use_targeting_users_list_as_blacklist: 
+          type: boolean
+          description: Use users list as blacklist instead of whitelist (deprecated, please use "dmp_audiences_not" in "targetingSectionCampaign" schema).
+          example: true
+        keywords_to_add_on_click:
+          type: array
+          description: Keywords to be added to target users, on click.
+          items:
+            type: string
+            example: "key1"
+        keywords_to_add_on_conversion_1:
+          type: array
+          description: Keywords to be added to target users, on conversion 1 .
+          items:
+            type: string
+            example: "key2"
+        users_list_on_impressions: 
+          type: string
+          description: Audience identifier.
+          example: "uhiu23y2iuh32i"
+        users_list_on_click: 
+          type: string
+          description: Audience identifier.
+          example: "28982y3y2jj"
+        users_lists_on_events: 
+          type: object
+          description: Audiences to be build on events.
+          properties: 
+            on_event_1:
+              type: string
+              example: "rk67wqcmjoucrlbc1jtbb0k42"
+            on_event_2:
+              type: string
+              example: "uk1zif52rnmv05kk09ztpbkgw"
+            on_event_3:
+              type: string
+              example: "9wm5o2lru1yux8u6t6fxb8ebg"
+            on_event_4:
+              type: string
+              example: "hkl70ur0yxglrn7ajeimjyomj"
+            on_event_5:
+              type: string
+              example: "pbhu87gpi1pjmuirfwbhqnkoq"
+        users_lists_on_video: 
+          type: object
+          description: Audiences to be build on video events.
+          properties: 
+            on_video_start:
+              type: string
+              example: "m4uyv98hukevnfwiu1ubmqmea"
+            on_video_first_quartile:
+              type: string
+              example: "3cxg69rwkhamhbasemrj4tpsy"
+            on_video_second_quartile:
+              type: string
+              example: "117rvu6bkd0x0pysed49zx2fx"
+            on_video_midpoint:
+              type: string
+              example: "37m0vow2zy0nkzrkiuxnay8g0"
+            on_video_third_quartile:
+              type: string
+              example: "qbywoqk5l73x7ka65u183irwq"
+            on_video_complete:
+              type: string
+              example: "gm9jzvhwc84bwloyzkl3ivd30"
+        
+    DealsAndPricingSectionCampaign:
+      type: object
+      description: Deals and pricing attributes.
+      properties:
+        deal_policy: 
+          type: string
+          description: Deal policy.
+          example: "plc"
+        deals: 
+          type: array
+          description: List of deals to use.
+          items:
+            type: string
+            example: "x123"
+        cpm: 
+          type: number
+          description: Initial CPM.
+          example: 10
+        cpc: 
+          type: number
+          description: Goal CPC.
+          example: 0.15
+        cpa: 
+          type: number
+          description: Goal CPA.
+          example: 3.8
+        cpv: 
+          type: number
+          description: Goal CPV.
+          example: 10
+        event_number_for_cpa: 
+          type: number
+          description: Event to use for CPA optimization.
+          example: 3
+        cpv_event: 
+          type: string
+          description: Video event to use for optimization.
+          example: "videocomplete"
+        exchange_breakdown: 
+          type: boolean
+          description: Optimization per exchange instead of global.
+          example: false
+        rules: 
+          type: array
+          description: Pricing rules.
+          items:
+            type: object
+            properties: 
+              formula:
+                type: array
+                description: List of keywords.
+                items: 
+                  type: string
+                  example: 'key1'
+              price:
+                type: number
+                description: Pricing factor to apply when formula is matched.
+                example: 1.5
+          
+    CreativesSectionCampaign:      
+      type: object
+      description: Creatives-related attributes
+      properties: 
+        distribution: 
+          type: string
+          description: Distribution policy for creatives.
+          example: "ctr"
+        default_click_url: 
+          type: string
+          description: Default click URL (if creatives or campaign creatives don’t override it).
+          example: "http://blabla.com/bla/bla?bla=bla"
+        default_final_click_url: 
+          type: string
+          description: Default final URL (if creatives or campaign creatives don’t override it).
+          example: "http://blabla.com/bla/bla?bla=bla"
+        default_impression_pixels: 
+          type: array
+          description: Default impression pixels (if creatives or campaign creatives don’t override it)
+          items:
+            type: string
+            example: "http://a.com..."
+        campaign_creatives: 
+          type: array
+          description: List of campaign creative instances
+          items:
+            type: object
+            properties: 
+              id: 
+                type: string
+                example: 'ou2iou2io3u'
+              keywords:
+                type: array
+                items: 
+                  type: string
+                  example: 'key1'
+              creative:
+                type: object
+          
                 
 paths:
 # PUBLIC PATHS ===========================================================================
@@ -2181,20 +2619,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                example:
-                  - id: <identifier>
-                    name: <the_name>
-                    state: active
-                    created_at: <iso_date>
-                    updated_at: <iso_date>
-                    schedule:
-                      ...: ...
-                    targeting:
-                      ...: ...
-                    deals_and_pricing:
-                      ...: ...
-                    ...: ...
+                $ref: '#/components/schemas/Campaign'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -2224,11 +2649,14 @@ paths:
                 type: object
                 example:
                   - id: <identifier>
-                    state: active
+                    state: <active|inactive>
                     campaign: <campaign_identifier>
-                    creative:
-                      ...: ...
-                    ...: ...
+                    creative: 
+                      id: "identifier"
+                      name: "the_name"
+                      description: "description"
+                      ... : ...
+                    
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -3118,8 +3546,4 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/403'    
-        
-          
-          
-    
+          $ref: '#/components/responses/403'
