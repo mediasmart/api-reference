@@ -929,9 +929,7 @@ components:
           description: The campaign description.
           example: "I am a description"
         state: 
-          type: string
-          description: The campaign state.
-          example: "inative"
+          $ref: '#/components/schemas/StateCampaign'
         color: 
           type: string
           description:  An hexadecimal color.
@@ -963,9 +961,7 @@ components:
           description:  An existing tracking event name.
           example: "hello"
         tracking_tool: 
-          type: string
-          description:  A tracking tool to use.
-          example: "mediasmart"
+          $ref: '#/components/schemas/TrackingToolCampaign'
         attribution_window_on_click: 
           type: string
           description:  Number of days to attribute clicks.
@@ -995,18 +991,17 @@ components:
           description:  A boolean to accept adledge terms and conditions. Needed when 'viewability_tracking_tool' is adledge.
           example: true   
         tvty_state: 
-          type: string
-          description:  Status on TVTY platform. 
+          $ref: '#/components/schemas/TvtyCampaign'
         schedule:
-            $ref: '#/components/schemas/ScheduleSectionCampaign'
+            $ref: '#/components/schemas/ScheduleCampaign'
         targeting:
-            $ref: '#/components/schemas/TargetingSectionCampaign'
+            $ref: '#/components/schemas/TargetingCampaign'
         retargeting:
-            $ref: '#/components/schemas/RetargetingSectionCampaign'
+            $ref: '#/components/schemas/RetargetingCampaign'
         deals_and_pricing:
-            $ref: '#/components/schemas/DealsAndPricingSectionCampaign'
+            $ref: '#/components/schemas/DealsAndPricingCampaign'
         creatives:
-            $ref: '#/components/schemas/CreativesSectionCampaign'
+            $ref: '#/components/schemas/CreativeCampaign'
         parent:
           type: object
           description: Parent campaign.
@@ -1020,7 +1015,7 @@ components:
           description: Organization of the campaign.
         created_at:
           type: string
-          description: 	ISO date of creation.
+          description:   ISO date of creation.
           example: '2016-04-05T22:00.123Z'
         updated_at:
           type: string
@@ -1033,14 +1028,14 @@ components:
       properties: 
         kpi: 
           type: string
-          description:  Key Performance Indicator.
+          description:  Key Performance Indicator. Available values for goal kpi are defined in as goal_kpis in the dictionary route.
           example: "cpc"
         value: 
           type: number
           description: Value of the kpi.
           example: 0.2
       
-    ScheduleSectionCampaign: 
+    ScheduleCampaign: 
       type: object
       description: Scheduling attributes. Global limits are only used for reporting. They are not real limits and your campaign will not stop when reaching them.
       properties: 
@@ -1139,12 +1134,12 @@ components:
                 description: If this range should run on sunday
                 example: true  
               
-    TargetingSectionCampaign:
+    TargetingCampaign:
       type: object
       description: Targeting attributes
       properties:
         exchanges:
-          description: Ad Exchanges where the campaign should run. Available AdExchanges are defined in the main dictionary as exchanges.
+          description: Ad Exchanges where the campaign should run. Available AdExchanges are defined in the main dictionary route as exchanges.
           oneOf:
             - type: object
               example: {
@@ -1155,7 +1150,7 @@ components:
             - type: integer
               nullable: true
         connection:
-          description: Type of connections where the campaign should run. Available ones are defined in the main dictionary as connection_type. Special value 'blacklist' can be included.
+          description: Type of connections where the campaign should run. Available ones are defined in the main dictionary route as connection_type. Special value 'blacklist' can be included.
           oneOf:
             - type: object
               example: {
@@ -1168,13 +1163,158 @@ components:
             - type: integer
               nullable: true
         device_type:
-          description: Type of devices where the campaign should run. Available ones are defined in the main dictionary as device_type. Special value 'blacklist' can be included.
+          description: Type of devices where the campaign should run. Available ones are defined in the main dictionary route as device_type. Special value 'blacklist' can be included.
           oneOf:
             - type: object
             - type: integer
               nullable: true
-        
-    RetargetingSectionCampaign:
+        device_makers:
+          type: array
+          description: List of devices makers (manufacturers). Available ones can be extracted performing a real time drilldown using the variable 'p:make'.
+          items:
+            type: string
+            example: "nokia"
+        use_device_makers_as_blacklist: 
+          type: boolean
+          description: Use device makers as blacklist instead of whitelist
+          example: true
+        device_models:
+          type: array
+          description: List of devices models. Available ones can be extracted performing real time drilldown using the variable 'p:model' ([GET] /api/analytics/daystats). Special value blacklist can be included.
+          items:
+            type: string
+            example: "nokia"  
+        use_device_models_as_blacklist: 
+          type: boolean
+          description: Use device models as blacklist instead of whitelist
+          example: true
+        user_agents:
+          type: array
+          description: List of user agent patterns to match
+          items:
+            type: string
+            example: "pattern1"   
+        use_user_agents_as_blacklist: 
+          type: boolean
+          description: Use user agents as blacklist instead of whitelist
+          example: true  
+        os:
+          description: Operating systems where the campaign should run. Available ones are defined in the main dictionary route as operating_systems.
+          oneOf:
+            - type: object
+              example: {
+                android: true, 
+                blackberry: false,
+              }
+            - type: integer
+              nullable: true
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountriesList'
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegionsList'
+        cities:
+          type: array
+          description: >-
+            List of cities. Available cities are defined in the `cities` dictionary.
+          items: 
+            type: string
+            example: '1234321'
+        zipcodes:
+          type: array
+          description: List of zip codes
+          items:
+            type: string
+            example: '16003'
+        operators:
+          type: array
+          description: List of operators. Available ones are defined in the main dictionary as operators.
+          items: 
+            type: string
+            example: 'vodafone'
+        use_operators_as_blacklist:
+          type: boolean
+          description: Use operators as blacklist instead of whitelist.
+          example: true
+        languages:
+          type: array
+          description: List of user languages. Available ones are defined in the main dictionary as languages.
+          items: 
+            type: string
+            example: 'es'
+        use_languages_as_blacklist:
+          type: boolean
+          description: Use languages as blacklist instead of whitelist.
+          example: true
+        mosaic:
+          type: array
+          description: >-
+            List of mosaic profile. Available ones are defined in the `mosaic` dictionary.
+          items: 
+            type: string
+            example: 'esp:02:bla'  
+        use_mosaic_as_blacklist:
+          type: boolean
+          description: Use mosaic profiles as blacklist instead of whitelist.
+          example: true 
+        dmp_audiences_and:
+          type: array
+          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of all the audiences in this section in order to bid for it.	
+          items: 
+            type: string
+            example: 'audA'  
+        dmp_audiences:
+          type: array
+          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of at least one of the audiences in this section in order to bid for it.	
+          items: 
+            type: string
+            example: 'audA'   
+        dmp_audiences_not:
+          type: array
+          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user can not be part of any of the audiences in this section in order to bid for it.	
+          items: 
+            type: string
+            example: 'audA'
+        will_not_copy_audiences:
+          type: boolean
+          description: A confirmation not copy external audiences. Required when an external audience is used.
+          example: true     
+        use_targeting_users_list_for_pretargeting:
+          type: boolean
+          description: Use 'dmp_audiences_and', 'dmp_audiences' and 'dmp_audiences_not' fields to reach for similar users.
+          example: true   
+        pretargeting_policy:
+          type: string
+          description: Pretargeting policy.	
+          example: 'off'   
+        identifiers:
+          description: Identifier types allowed for the campaign. Available ones are defined in the main dictionary as 'identifiers'.	
+          oneOf:
+            - type: object
+              example: {
+                ifa: true, 
+                gaid: false,
+                web: true,
+              }
+            - type: integer
+              nullable: true
+        publisher_type:
+          description: Types of publisher allowed for the campaign. Available ones are defined in the main dictionary as 'publisher_type'.	
+          oneOf:
+            - type: object
+              example: {
+                app: true,
+                web: true,
+              }
+            - type: integer
+              nullable: true    
+              
+              
+            
+    RetargetingCampaign:
       type: object
       description: Retargeting attributes
       properties:
@@ -1184,11 +1324,11 @@ components:
           example: 'off'
         targeting_users_list: 
           type: string
-          description: Audience identifier (deprecated, please use "dmp_audiences" in "targetingSectionCampaign" schema).
+          description: Audience identifier (deprecated, please use "dmp_audiences" in "targetingCampaign" schema).
           example: 'jkj2302923ur0id2'
         use_targeting_users_list_as_blacklist: 
           type: boolean
-          description: Use users list as blacklist instead of whitelist (deprecated, please use "dmp_audiences_not" in "targetingSectionCampaign" schema).
+          description: Use users list as blacklist instead of whitelist (deprecated, please use "dmp_audiences_not" in "targetingCampaign" schema).
           example: true
         keywords_to_add_on_click:
           type: array
@@ -1252,7 +1392,7 @@ components:
               type: string
               example: "gm9jzvhwc84bwloyzkl3ivd30"
         
-    DealsAndPricingSectionCampaign:
+    DealsAndPricingCampaign:
       type: object
       description: Deals and pricing attributes.
       properties:
@@ -1311,7 +1451,7 @@ components:
                 description: Pricing factor to apply when formula is matched.
                 example: 1.5
           
-    CreativesSectionCampaign:      
+    CreativeCampaign:      
       type: object
       description: Creatives-related attributes
       properties: 
@@ -1349,7 +1489,38 @@ components:
                   example: 'key1'
               creative:
                 type: object
-          
+    
+    StateCampaign: 
+      type: string
+      description: The campaign state. Available states are defined as campaign_states in the dictionary route.
+      enum:
+        - active
+        - inactive
+        - deleted
+        - preview
+        - imported
+    
+    TrackingToolCampaign: 
+      type: string
+      description:  A tracking tool to use. Available tracking tools are defined in as tracking_tools in the dictionary route.
+      enum:
+        - mediasmart
+        - s2s
+        - adjust
+        - adx
+        - appsflyer
+        - emma
+        - hasoffers
+        - kochava
+        - tune
+    
+    TvtyCampaign: 
+      type: string
+      description:  Status on TVTY platform. Available tvty states are defined as tvty_state in the dictionary route.
+      enum:
+        - disabled
+        - on
+        - off
                 
 paths:
 # PUBLIC PATHS ===========================================================================
