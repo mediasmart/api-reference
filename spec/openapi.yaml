@@ -1001,7 +1001,7 @@ components:
         deals_and_pricing:
             $ref: '#/components/schemas/DealsAndPricingCampaign'
         creatives:
-            $ref: '#/components/schemas/CreativeCampaign'
+            $ref: '#/components/schemas/CreativesCampaign'
         parent:
           type: object
           description: Parent campaign.
@@ -1262,19 +1262,19 @@ components:
           example: true 
         dmp_audiences_and:
           type: array
-          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of all the audiences in this section in order to bid for it.	
+          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of all the audiences in this section in order to bid for it.  
           items: 
             type: string
             example: 'audA'  
         dmp_audiences:
           type: array
-          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of at least one of the audiences in this section in order to bid for it.	
+          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user has to be part of at least one of the audiences in this section in order to bid for it.  
           items: 
             type: string
             example: 'audA'   
         dmp_audiences_not:
           type: array
-          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user can not be part of any of the audiences in this section in order to bid for it.	
+          description: DMP audiences or organization’s audiences that the campaign is targeted to. An user can not be part of any of the audiences in this section in order to bid for it.  
           items: 
             type: string
             example: 'audA'
@@ -1288,10 +1288,14 @@ components:
           example: true   
         pretargeting_policy:
           type: string
-          description: Pretargeting policy.	
-          example: 'off'   
+          description: Available pretargeting policies are defined in the main dictionary as 'pretargeting_policy'.
+          enum: 
+            - 'off'
+            - 'very-restrictive'
+            - 'normal'
+            - 'less-restrictive'
         identifiers:
-          description: Identifier types allowed for the campaign. Available ones are defined in the main dictionary as 'identifiers'.	
+          description: Identifier types allowed for the campaign. Available ones are defined in the main dictionary as 'identifiers'.  
           oneOf:
             - type: object
               example: {
@@ -1302,7 +1306,7 @@ components:
             - type: integer
               nullable: true
         publisher_type:
-          description: Types of publisher allowed for the campaign. Available ones are defined in the main dictionary as 'publisher_type'.	
+          description: Types of publisher allowed for the campaign. Available ones are defined in the main dictionary as 'publisher_type'.  
           oneOf:
             - type: object
               example: {
@@ -1311,8 +1315,116 @@ components:
               }
             - type: integer
               nullable: true    
-              
-              
+        age:
+          description: Age ranges allowed. Available ranges are defined in the main dictionary as 'age'. Extra value blacklist supported.  
+          oneOf:
+            - type: object
+              example: {
+                lt13: true,
+                gt13-lt17: true,
+                blacklist: true,
+              }
+            - type: integer
+              nullable: true       
+        gender:
+          description: Gender allowed (male or female). Extra value 'blacklist' supported.  
+          oneOf:
+            - type: object
+              example: {
+                male: true,
+                female: false,
+                blacklist: false,
+              }
+            - type: integer
+              nullable: true      
+        categories:
+          type: array
+          description: List of publisher categories. Available ones are defined in the main dictionary as 'publisher_categories'.
+          items: 
+            type: string
+            example: 'adult'
+        use_categories_as_blacklist:
+          type: boolean
+          description: Use categories as blacklist instead of whitelist.
+          example: true 
+        interests:
+          type: array
+          description: List of user interest about categories. Available ones are defined in the main dictionary as 'publisher_categories'.
+          items: 
+            type: string
+            example: 'automobile'
+        publishers:
+          type: array
+          description: List of publisher keywords or patterns to match. Publisher lists can be used, using 'list:' prefix.
+          items: 
+            type: string
+            example: 
+              - '*kitty*'
+              - 'list:<id>'
+              - '*talking*'
+        use_publishers_as_blacklist:
+          type: boolean
+          description: Use publishers list as blacklist instead of whitelist.
+          example: true
+        publishers_rules:
+          type: array
+          description: List of publishers with their specific prices for microbidding.
+          items: 
+            type: object
+            items: 
+              example: {
+                price: '1.2',
+                formula: ['key3']
+              }
+              oneOf:
+              - type: string
+              - type: array
+                items: 
+                  type: string
+        pages:
+          type: array
+          description: List of publishers domains or urls to match.
+          items: 
+            type: string
+            example: 'example.com'
+        use_pages_as_blacklist:
+          type: boolean
+          description: Use publishers domain or urls as blacklist instead of whitelist.
+          example: true
+        geolist_acquisition:
+          type: string
+          description: Geolist identifier for targeting.
+          example: '<id>'  
+        use_geolist_conversion_as_targeting_blacklist:
+          type: boolean
+          description: Do not buy traffic inside the conversion geolist.
+          example: true  
+        manual_keywords_or:
+          type: array
+          description: List of keywords where at least one has to be present.
+          items: 
+            type: string
+            example: 'key1'
+        manual_keywords_and:
+          type: array
+          description: List of keywords where all of them have to be present.
+          items: 
+            type: string
+            example: 'key3'  
+        manual_keywords_not:
+          type: array
+          description: List of keywords where none can be present.
+          items: 
+            type: string
+            example: 'key6'     
+        manual_keywords_rule:
+          type: array
+          description: A custom keywords logic --> AND of ORs. Array of arrays of strings.
+          items: 
+            type: array
+            items: 
+              type: string
+              example: 'p:a:one'
             
     RetargetingCampaign:
       type: object
@@ -1451,7 +1563,7 @@ components:
                 description: Pricing factor to apply when formula is matched.
                 example: 1.5
           
-    CreativeCampaign:      
+    CreativesCampaign:      
       type: object
       description: Creatives-related attributes
       properties: 
@@ -2609,7 +2721,7 @@ paths:
                 - $ref: '#/components/schemas/CreativeDynamic'
 
       responses:
-        '200':
+        '201':
           description: Successful creation
           content:
             application/json:
@@ -2797,6 +2909,46 @@ paths:
           $ref: '#/components/responses/401'
         '403':
           $ref: '#/components/responses/403'
+          
+  /api/campaign:
+    post:
+      tags:
+        - Campaigns
+      summary: /campaign
+      description: Creates a new campaign. This method accepts both a full campaign body or a plain basic campaign attributes objects. 
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/SimpleWayCampaign'
+                - $ref: '#/components/schemas/FullCampaignAttributes'
+      responses:
+        '201':
+          description: Successful creation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: '...'
+                  name: 'My campaign'
+                  created_at: '2015-10-02T03:22:00'
+                  updated_at: '2015-10-03T11:23:21'
+                  deals_and_pricing: {
+                    cpm: 10,
+                    ...: ...
+                  }
+                  ...: ...
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+  
+  
   /api/campaign/{id}/creatives:
     get:
       tags:
@@ -3704,7 +3856,7 @@ paths:
                   description: A description for your list  
                 publishers:
                   type: array
-                  description: A list of publishers
+                  description: A list of publisherstarget
                   items: 
                     type: string  
       responses:
