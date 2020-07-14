@@ -1,9 +1,8 @@
 var gulp = require('gulp');
 var util = require('gulp-util')
 var gulpConnect = require('gulp-connect');
-var connect = require('connect');
+var express = require('express');
 var cors = require('cors');
-var path = require('path');
 var exec = require('child_process').exec;
 var portfinder = require('portfinder');
 var swaggerRepo = require('swagger-repo');
@@ -19,8 +18,8 @@ function build (cb) {
 
 function edit () {
   portfinder.getPort({port: 5000}, function (err, port) {
-    var app = connect();
-    app.use(swaggerRepo.swaggerEditorMiddleware());
+    var app = express();
+    app.use('/', swaggerRepo.swaggerEditorMiddleware());
     app.listen(port);
     util.log(util.colors.green('swagger-editor started http://localhost:' + port));
   });
